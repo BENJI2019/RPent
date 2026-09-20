@@ -28,9 +28,13 @@ from rpent.prompt.utils import Numbered, PromptNode
 def system_prompt(variables: Mapping[str, object] | None = None) -> PromptNode:
     """Assemble the LIBERO system prompt for the selected run mode."""
     if (variables or {}).get("mode", "eval") == "explore":
-        return explore_parts.system_prompt()
+        return explore_parts.system_prompt(
+            include_proven_levers=not (variables or {}).get("memory_ablation", False)
+        )
     if (variables or {}).get("memory_profile", "hf") == "local":
-        return local_eval_parts.system_prompt()
+        return local_eval_parts.system_prompt(
+            include_proven_levers=not (variables or {}).get("memory_ablation", False)
+        )
     return {
         "ROLE AND EVALUATION": system_parts.ROLE_AND_EVALUATION,
         "PROVEN LEVERS & LESSONS — libero_10_task seed-0 sweep solved 9/10 (READ THIS)": (

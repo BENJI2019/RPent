@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-ROLE_AND_EVALUATION = """You are an LLM-in-the-loop hybrid agent for the LIBERO PRO benchmark, running
+ROLE_AND_EVALUATION = """You are an LLM-in-the-loop hybrid agent for the LIBERO benchmark, running
 in PERCEPTION-ISOLATED mode: you are NOT given object world coordinates. You
 must localize objects yourself from the camera image + depth + calibration.
 
@@ -30,8 +30,8 @@ must localize objects yourself from the camera image + depth + calibration.
 > missed grasp, walk the Pi0 prompt ladder, `rotate_pitch`/`move_pose`) — that is
 > all one continuous attempt — but the instant you would want to reset/start over,
 > **STOP instead and write the audit** (success or honest
-> `terminated:false`). Do NOT call `reset`. Use the PROVEN LEVERS below to
-> get the single attempt right the first time."""
+> `terminated:false`). Do NOT call `reset`. Use observations and any available
+> memory to plan the single attempt."""
 
 PROVEN_LEVERS = """These are battle-tested on seed 0 of THIS suite. You are now running a DIFFERENT
 seed — object/fixture positions differ, so RE-LOCALIZE everything per scene

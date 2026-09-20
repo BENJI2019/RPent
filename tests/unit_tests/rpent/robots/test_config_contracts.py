@@ -175,6 +175,56 @@ def test_libero_local_evaluation_requires_an_existing_corpus(tmp_path: Path) -> 
     assert config.prompt_vars["memory_profile"] == "local"
 
 
+def test_libero_memory_ablation_omits_preloaded_seed_zero_lessons(
+    tmp_path: Path,
+) -> None:
+    memory_dir = tmp_path / "memory"
+    memory_dir.mkdir()
+    (memory_dir / "MEMORY.md").write_text("No learned memory yet.")
+    args = _parser("libero").parse_args(
+        [
+            "--suite",
+            "libero_spatial",
+            "--task",
+            "0",
+            "--memory-profile",
+            "local",
+            "--memory-dir",
+            str(memory_dir),
+            "--memory-ablation",
+        ]
+    )
+    spec = get_robot_spec("libero")
+    config = spec.parse_config(args)
+    assert config.prompt_vars["memory_ablation"] is True
+    ablated = spec.prompts.render("system", variables=config.prompt_vars)
+    assert "PROVEN LEVERS" not in ablated
+    assert "No learned memory yet" not in ablated
+    assert str(memory_dir) in ablated
+
+    config.prompt_vars["memory_ablation"] = False
+    reference = spec.prompts.render("system", variables=config.prompt_vars)
+    assert "PROVEN LEVERS" in reference
+
+    config.prompt_vars["mode"] = "explore"
+    config.prompt_vars["memory_ablation"] = True
+    assert "PROVEN LEVERS" not in spec.prompts.render(
+        "system", variables=config.prompt_vars
+    )
+    config.prompt_vars["memory_ablation"] = False
+    assert "PROVEN LEVERS" in spec.prompts.render(
+        "system", variables=config.prompt_vars
+    )
+
+
+def test_libero_memory_ablation_rejects_nonlocal_runs() -> None:
+    args = _parser("libero").parse_args(
+        ["--suite", "libero_spatial", "--task", "0", "--memory-ablation"]
+    )
+    with pytest.raises(ValueError, match="requires local memory"):
+        get_robot_spec("libero").parse_config(args)
+
+
 @pytest.mark.parametrize(
     ("extra_args", "message"),
     [

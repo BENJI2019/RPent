@@ -175,6 +175,66 @@ inbox cell explicitly with ``rpent-memory``:
 
 Generated memory is runtime data and is not committed to this repository.
 
+Four-suite memory-learning experiment
+-------------------------------------
+
+Run ``python robots/libero/continual_eval.py`` from the repository root in a
+Linux environment with the LIBERO, Pi0.5, and SAM3 assets installed. This is a
+separate memory-learning experiment, not the :doc:`../leaderboard` protocol.
+It defaults to the **standard** ``libero_spatial``, ``libero_object``,
+``libero_goal``, ``libero_10`` suites in that order. Keep the planner and VLA
+weights fixed. Evaluation uses seeds 1–10 with a read-only snapshot of memory;
+seed 0 exploration updates the live corpus only after the preceding stage.
+``--memory-ablation`` removes the preloaded seed-0 lessons from both prompt
+modes; ordinary robot instructions remain. The empty-corpus baseline precedes
+all exploration.
+
+.. code-block:: bash
+
+   export GEMINI_API_KEY=<your-key>
+   python robots/libero/continual_eval.py --output-root /path/to/new-experiment
+
+The default OpenAI-compatible endpoint uses Gemini 3.5 Flash-Lite. To use a
+locally hosted vision- and tool-capable Qwen model, pass ``--model
+openai-chat:Qwen/Qwen3.5-27B --base-url http://127.0.0.1:8000/v1
+--api-key-env LOCAL_API_KEY`` and set ``LOCAL_API_KEY`` to the server key (or
+``EMPTY`` for an unauthenticated local server). A text-only connectivity check
+does not verify image or tool calls: pilot a few cells before the full run.
+
+For the example installation under
+``/home/ma-user/work/model/xiaoyi_tmpstorage/hyy_files/repent/``, the Linux
+launcher ``robots/libero/run_local_qwen.sh`` uses the Pi0.5 directory
+``RLinf-Pi05-LIBERO-130-fullshot-SFT``, the file ``sam3/sam3.pt``, and the
+``Qwen3.5-27B`` directory. It starts Qwen on GPUs 0–3, Pi0.5 on GPU 4, SAM3
+on GPU 5, and the LIBERO environment on GPU 6; GPU 7 stays free. It reuses
+all three model services across jobs and stops the services it started on
+exit. The paths and GPU assignments are overridable with
+``PI05_CHECKPOINT_PATH``, ``SAM3_CHECKPOINT_PATH``, ``QWEN_MODEL_PATH``,
+``SAM3_MODEL_DIR``, ``QWEN_GPUS``, ``QWEN_TP``, ``PI05_GPU``, ``SAM3_GPU``,
+and ``LIBERO_GPU``. ``SAM3_CHECKPOINT_PATH`` overrides the checkpoint file;
+otherwise the launcher uses ``$SAM3_MODEL_DIR/sam3.pt``.
+When changing the planner checkpoint, set ``QWEN_SERVED_MODEL_NAME`` too so
+the recorded model name identifies the actual weights.
+Check that ``sam3.pt`` is actually at that path before starting.
+
+.. code-block:: bash
+
+   bash robots/libero/run_local_qwen.sh /absolute/path/to/pilot \
+     --tasks-per-suite 1 --eval-seeds 1
+   bash robots/libero/run_local_qwen.sh /absolute/path/to/full-experiment
+
+Use ``--tasks-per-suite 1 --eval-seeds 1`` for a 24-run pilot and ``--resume``
+with the same options after a failed episode. Prestarted Pi0.5/SAM3 endpoints
+can be reused with ``--vla-endpoint`` and ``--sam3-endpoint``.
+
+The full schedule has 40 exploration jobs and 2,000 single-episode evaluations
+(five stages × four suites × ten tasks × ten seeds). Results are written to
+``experiment.json``, ``episodes.csv``, ``matrix.csv``, and ``retention.csv``;
+the success predicate comes from environment ``states.json``. A failed
+exploration that changed the live corpus requires manual inspection before
+resuming. API free-tier rate limits and real GPU runtime may prevent one
+uninterrupted completion.
+
 What runs where
 ---------------
 

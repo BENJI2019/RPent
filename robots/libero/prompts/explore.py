@@ -51,7 +51,7 @@ from rpent.prompt.utils import Numbered, PromptNode
 # Role and goal
 # ---------------------------------------------------------------------------
 
-ROLE = """You are an LLM-in-the-loop hybrid driver for the LIBERO PRO benchmark, running
+ROLE = """You are an LLM-in-the-loop hybrid driver for the LIBERO benchmark, running
 in PERCEPTION-ISOLATED mode: you are NOT given object world coordinates. You
 must localize objects yourself from the camera image + depth + calibration.
 
@@ -426,12 +426,16 @@ WORKFLOW_STEPS = (
 )
 
 
-def system_prompt() -> PromptNode:
+def system_prompt(*, include_proven_levers: bool = True) -> PromptNode:
     """Assemble the LIBERO exploration system prompt."""
     return {
         "ROLE AND MODE": ROLE,
-        "PROVEN LEVERS & LESSONS — libero_10_task seed-0 sweep solved 9/10 (READ THIS)": (
-            base.PROVEN_LEVERS
+        **(
+            {
+                "PROVEN LEVERS & LESSONS — libero_10_task seed-0 sweep solved 9/10 (READ THIS)": base.PROVEN_LEVERS
+            }
+            if include_proven_levers
+            else {}
         ),
         "RUNTIME": base.RUNTIME,
         "YOUR GOAL": GOAL,

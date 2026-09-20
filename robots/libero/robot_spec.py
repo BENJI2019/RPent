@@ -189,6 +189,11 @@ def _add_cli_args(parser: argparse.ArgumentParser, use_dashboard: bool) -> None:
     parser.add_argument("--task", type=int, default=None, required=required)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
+        "--memory-ablation",
+        action="store_true",
+        help="Omit preloaded seed-0 lessons from local exploration/evaluation prompts.",
+    )
+    parser.add_argument(
         "--collect-flywheel-data",
         action="store_true",
         help="record this evaluation episode for Flywheel training",
@@ -297,6 +302,9 @@ def _parse_config(args: argparse.Namespace) -> RunConfig:
         else get_memory_dir("libero")
     )
     local_eval = not explore and memory_profile == "local"
+    memory_ablation = bool(getattr(args, "memory_ablation", False))
+    if memory_ablation and memory_profile != "local":
+        raise ValueError("--memory-ablation requires local memory mode")
     if local_eval:
         if planner == "flash":
             plan_name = recipe_tag.rsplit("_s", 1)[0]
@@ -327,6 +335,7 @@ def _parse_config(args: argparse.Namespace) -> RunConfig:
         "recipe_tag": recipe_tag,
         "mode": "explore" if explore else "eval",
         "memory_profile": memory_profile,
+        "memory_ablation": memory_ablation,
         "memory_dir": str(memory_dir),
         "reference_tag": f"{args.suite.replace('libero_', '')}_t{args.task}_s0",
         # Per-cell inbox: parallel explore runs must not append to a shared file.

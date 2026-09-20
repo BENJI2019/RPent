@@ -35,8 +35,7 @@ MEMORY_PROFILE = """Use the LOCAL exploration corpus for this evaluation. Its th
 different jobs; use every layer that is available:
 
 1. GLOBAL: `{{memory_dir}}/global/` — reusable robot/perception/primitive lessons.
-2. SUITE: `{{memory_dir}}/suite/suite_libero10_<regime>_t{{task}}.md` — the
-   task/regime strategy, validated ranges, and failure table.
+2. SUITE: `{{memory_dir}}/suite/` — matching task/suite strategies, when present.
 3. TASK: `{{memory_dir}}/task_only/{{reference_tag}}.json` plus
    `{{memory_dir}}/task_only/{{reference_tag}}_recipe.jsonl` — the matched successful
    audit and command order from seed 0.
@@ -69,12 +68,12 @@ WORKFLOW_STEPS = (
 )
 
 
-def system_prompt() -> PromptNode:
+def system_prompt(*, include_proven_levers: bool = True) -> PromptNode:
     """Assemble the local suite/task/global evaluation prompt."""
-    return {
+    sections: dict[str, PromptNode] = {
         "ROLE AND EVALUATION": base.ROLE_AND_EVALUATION,
         "MEMORY PROFILE — LOCAL SUITE + TASK + GLOBAL": MEMORY_PROFILE,
-        "PROVEN LEVERS": base.PROVEN_LEVERS,
+        **({"PROVEN LEVERS": base.PROVEN_LEVERS} if include_proven_levers else {}),
         "RUNTIME": base.RUNTIME,
         "YOUR GOAL": base.GOAL,
         "RULES (NON-NEGOTIABLE)": base.RULES,
@@ -84,6 +83,7 @@ def system_prompt() -> PromptNode:
         "KEY HYPERPARAMETERS": base.KEY_HYPERPARAMETERS,
         "OUTPUT DISCIPLINE": base.OUTPUT_DISCIPLINE,
     }
+    return sections
 
 
 __all__ = ["system_prompt", "WORKFLOW_STEPS"]

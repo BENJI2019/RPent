@@ -155,6 +155,60 @@ memory 维护命令：
 
 运行时生成的 memory 数据不应提交到仓库。
 
+四套件记忆式持续学习实验
+------------------------
+
+在安装好 LIBERO、Pi0.5 和 SAM3 资产的 Linux 环境中，于仓库根目录运行
+``python robots/libero/continual_eval.py``。这是独立的记忆式持续学习实验，
+并非 :doc:`../leaderboard` 所用的测评协议。默认顺序为 **standard** 版
+``libero_spatial``、``libero_object``、``libero_goal``、``libero_10``。
+全程固定 planner 和 VLA 权重；每阶段以只读 memory 快照在 seed 1–10 上评测，
+随后才在 seed 0 上探索下一个套件、更新工作 memory。探索前先测空 memory
+基线。``--memory-ablation`` 会在探索及评测提示词中关闭仓库预置的 seed-0
+经验，但保留普通操作指令。
+
+.. code-block:: bash
+
+   export GEMINI_API_KEY=<你的密钥>
+   python robots/libero/continual_eval.py --output-root /path/to/new-experiment
+
+默认通过 OpenAI 兼容接口调用 Gemini 3.5 Flash-Lite。如改用本地部署的、支持
+图像及工具调用的 Qwen，可传入 ``--model openai-chat:Qwen/Qwen3.5-27B
+--base-url http://127.0.0.1:8000/v1 --api-key-env LOCAL_API_KEY``；
+``LOCAL_API_KEY`` 设置为服务密钥，无鉴权时可设为 ``EMPTY``。连接预检只验证
+文本，不能证明图像和工具调用可用；建议先用
+``--tasks-per-suite 1 --eval-seeds 1`` 做 24 次运行的小规模试验。
+
+针对安装在
+``/home/ma-user/work/model/xiaoyi_tmpstorage/hyy_files/repent/`` 的模型，
+Linux 启动脚本 ``robots/libero/run_local_qwen.sh`` 默认读取
+``RLinf-Pi05-LIBERO-130-fullshot-SFT`` 目录、``sam3/sam3.pt`` 文件和
+``Qwen3.5-27B`` 目录。它默认将 Qwen 放在 GPU 0–3、Pi0.5 放在 GPU 4、
+SAM3 放在 GPU 5、LIBERO 环境放在 GPU 6，留出 GPU 7；三个模型服务在任务间
+复用，并在脚本退出时关闭。可通过 ``PI05_CHECKPOINT_PATH``、
+``SAM3_CHECKPOINT_PATH``、``QWEN_MODEL_PATH``、``QWEN_GPUS``、
+``QWEN_TP``、``PI05_GPU``、``SAM3_GPU``、``LIBERO_GPU`` 覆盖路径或卡号。
+``SAM3_MODEL_DIR`` 指定安装目录；若未单独设置 ``SAM3_CHECKPOINT_PATH``，
+脚本会使用该目录下的 ``sam3.pt``。
+更换规划模型权重时，也要设置 ``QWEN_SERVED_MODEL_NAME``，使结果中记录的
+模型名称与实际权重一致。
+运行前请确认 ``sam3.pt`` 确实位于上述位置。
+
+.. code-block:: bash
+
+   bash robots/libero/run_local_qwen.sh /absolute/path/to/pilot \
+     --tasks-per-suite 1 --eval-seeds 1
+   bash robots/libero/run_local_qwen.sh /absolute/path/to/full-experiment
+
+失败后用相同参数加 ``--resume`` 续跑。预先启动的 Pi0.5/SAM3 服务可通过
+``--vla-endpoint``、``--sam3-endpoint`` 复用。
+
+完整计划包含 40 个探索任务和 2,000 个单回合评测（5 阶段 × 4 套件 ×
+10 任务 × 10 seed）。结果存于 ``experiment.json``、``episodes.csv``、
+``matrix.csv`` 和 ``retention.csv``；成功与否以环境 ``states.json`` 为准。
+如果失败的探索已修改工作 memory，需人工检查后才能恢复。免费 API 的限额及
+GPU 耗时都可能导致实验无法一口气完成。
+
 进程分工
 --------
 
