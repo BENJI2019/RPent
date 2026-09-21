@@ -22,10 +22,10 @@ shift
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 cd "$repo_root"
 
-PI05_CHECKPOINT_PATH=${PI05_CHECKPOINT_PATH:-/home/ma-user/work/model/xiaoyi_tmpstorage/hyy_files/repent/RLinf-Pi05-LIBERO-130-fullshot-SFT}
-SAM3_MODEL_DIR=${SAM3_MODEL_DIR:-/home/ma-user/work/model/xiaoyi_tmpstorage/hyy_files/repent/sam3}
+PI05_CHECKPOINT_PATH=${PI05_CHECKPOINT_PATH:-/home/ma-user/work/model/xiaoyi_tmpstorage/hyy_files/rpent/RLinf-Pi05-LIBERO-130-fullshot-SFT}
+SAM3_MODEL_DIR=${SAM3_MODEL_DIR:-/home/ma-user/work/model/xiaoyi_tmpstorage/hyy_files/rpent/sam3}
 SAM3_CHECKPOINT_PATH=${SAM3_CHECKPOINT_PATH:-$SAM3_MODEL_DIR/sam3.pt}
-QWEN_MODEL_PATH=${QWEN_MODEL_PATH:-/home/ma-user/work/model/xiaoyi_tmpstorage/hyy_files/repent/Qwen3.5-27B}
+QWEN_MODEL_PATH=${QWEN_MODEL_PATH:-/home/ma-user/work/model/xiaoyi_tmpstorage/hyy_files/rpent/Qwen3.5-27B}
 QWEN_SERVED_MODEL_NAME=${QWEN_SERVED_MODEL_NAME:-Qwen3.5-27B}
 QWEN_GPUS=${QWEN_GPUS:-0,1,2,3}
 QWEN_TP=${QWEN_TP:-4}
