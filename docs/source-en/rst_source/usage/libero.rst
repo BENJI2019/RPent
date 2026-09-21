@@ -211,8 +211,9 @@ all three model services across jobs and stops the services it started on
 exit. The paths and GPU assignments are overridable with
 ``PI05_CHECKPOINT_PATH``, ``SAM3_CHECKPOINT_PATH``, ``QWEN_MODEL_PATH``,
 ``SAM3_MODEL_DIR``, ``QWEN_GPUS``, ``QWEN_TP``, ``PI05_GPU``, ``SAM3_GPU``,
-and ``LIBERO_GPU``. ``SAM3_CHECKPOINT_PATH`` overrides the checkpoint file;
-otherwise the launcher uses ``$SAM3_MODEL_DIR/sam3.pt``.
+``LIBERO_GPU``, and ``VLLM_BIN``. ``VLLM_BIN`` selects the vLLM executable;
+``SAM3_CHECKPOINT_PATH`` overrides the checkpoint file; otherwise the launcher
+uses ``$SAM3_MODEL_DIR/sam3.pt``.
 When changing the planner checkpoint, set ``QWEN_SERVED_MODEL_NAME`` too so
 the recorded model name identifies the actual weights.
 Check that ``sam3.pt`` is actually at that path before starting.

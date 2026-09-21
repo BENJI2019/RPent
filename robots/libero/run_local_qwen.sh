@@ -30,6 +30,8 @@ QWEN_SERVED_MODEL_NAME=${QWEN_SERVED_MODEL_NAME:-Qwen3.5-27B}
 QWEN_GPUS=${QWEN_GPUS:-0,1,2,3}
 QWEN_TP=${QWEN_TP:-4}
 QWEN_MAX_MODEL_LEN=${QWEN_MAX_MODEL_LEN:-65536}
+VLLM_BIN=${VLLM_BIN:-/opt/huawei/explorer-env/dataset/Common_wl/miniconda3/envs/vllm/bin/vllm}
+[[ -x "$VLLM_BIN" ]] || { echo "vllm binary missing: $VLLM_BIN" >&2; exit 2; }
 PI05_GPU=${PI05_GPU:-4}
 SAM3_GPU=${SAM3_GPU:-5}
 LIBERO_GPU=${LIBERO_GPU:-6}
@@ -37,7 +39,7 @@ LIBERO_GPU=${LIBERO_GPU:-6}
 [[ -d "$PI05_CHECKPOINT_PATH" ]] || { echo "Pi0.5 directory missing: $PI05_CHECKPOINT_PATH" >&2; exit 2; }
 [[ -f "$SAM3_CHECKPOINT_PATH" ]] || { echo "SAM3 checkpoint missing: $SAM3_CHECKPOINT_PATH" >&2; exit 2; }
 [[ -d "$QWEN_MODEL_PATH" ]] || { echo "Qwen directory missing: $QWEN_MODEL_PATH" >&2; exit 2; }
-for tool in python vllm curl; do
+for tool in python curl; do
   command -v "$tool" >/dev/null || { echo "Missing command: $tool" >&2; exit 2; }
 done
 IFS=, read -r -a qwen_gpu_list <<< "$QWEN_GPUS"
@@ -62,7 +64,7 @@ trap cleanup EXIT
 
 export PI05_CHECKPOINT_PATH SAM3_CHECKPOINT_PATH
 export LOCAL_API_KEY=${LOCAL_API_KEY:-EMPTY}
-CUDA_VISIBLE_DEVICES="$QWEN_GPUS" vllm serve "$QWEN_MODEL_PATH" \
+CUDA_VISIBLE_DEVICES="$QWEN_GPUS" "$VLLM_BIN" serve "$QWEN_MODEL_PATH" \
   --host 127.0.0.1 --port 8000 --served-model-name "$QWEN_SERVED_MODEL_NAME" \
   --tensor-parallel-size "$QWEN_TP" --max-model-len "$QWEN_MAX_MODEL_LEN" \
   --reasoning-parser qwen3 --enable-auto-tool-choice \

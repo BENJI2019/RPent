@@ -188,8 +188,8 @@ SAM3 放在 GPU 5、LIBERO 环境放在 GPU 6，留出 GPU 7；三个模型服�
 复用，并在脚本退出时关闭。可通过 ``PI05_CHECKPOINT_PATH``、
 ``SAM3_CHECKPOINT_PATH``、``QWEN_MODEL_PATH``、``QWEN_GPUS``、
 ``QWEN_TP``、``PI05_GPU``、``SAM3_GPU``、``LIBERO_GPU`` 覆盖路径或卡号。
-``SAM3_MODEL_DIR`` 指定安装目录；若未单独设置 ``SAM3_CHECKPOINT_PATH``，
-脚本会使用该目录下的 ``sam3.pt``。
+``VLLM_BIN`` 指定 vLLM 可执行文件；``SAM3_MODEL_DIR`` 指定安装目录；若未单独
+设置 ``SAM3_CHECKPOINT_PATH``，脚本会使用该目录下的 ``sam3.pt``。
 更换规划模型权重时，也要设置 ``QWEN_SERVED_MODEL_NAME``，使结果中记录的
 模型名称与实际权重一致。
 运行前请确认 ``sam3.pt`` 确实位于上述位置。
