@@ -29,7 +29,7 @@ expected = Path(os.environ["RETENTION_CODE_ROOT"]) / "vendor/openpi"
 if Path(experiment.openpi_root).resolve() != expected.resolve():
     raise ValueError("config refers to another algorithm snapshot; initialize on this platform with a fresh output")
 if not Path(experiment.output_root).resolve().is_relative_to(Path(os.environ["RETENTION_HOME"]).resolve()):
-    raise ValueError("cluster outputs must stay under RETENTION_HOME on the model volume")
+    raise ValueError("cluster outputs must stay under RETENTION_HOME on shared storage")
 PY
 }
 

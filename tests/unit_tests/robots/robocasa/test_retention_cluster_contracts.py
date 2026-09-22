@@ -132,11 +132,11 @@ def test_role_activation_removes_old_cudnn_and_uses_requested_prefix(tmp_path):
     assert lines[3] == str(openpi / "lib/python3.11/site-packages/nvidia/cudnn")
 
 
-def test_huawei_init_keeps_code_in_package_and_outputs_on_model_volume(
+def test_huawei_init_keeps_code_in_package_and_outputs_on_shared_volume(
     tmp_path, monkeypatch
 ):
     model, dataset = tmp_path / "model", tmp_path / "dataset"
-    home = model / "xiaoyi_tmpstorage/hyy_files/rpent"
+    home = dataset / "Common_wl/hyy_vla_retention"
     monkeypatch.setattr(prepare, "SHARED_MODEL_ROOTS", (model,))
     monkeypatch.setattr(prepare, "SHARED_DATASET_ROOTS", (dataset,))
     root = Path(prepare.__file__).resolve().parents[3]

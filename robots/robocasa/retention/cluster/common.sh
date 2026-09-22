@@ -59,14 +59,12 @@ load_settings() {
     [[ -f "$settings" ]] || fail "copy cluster.env.example to cluster.env and record your absolute Conda prefixes"
     source "$settings"
     local key
-    for key in RETENTION_HOME RETENTION_DATASETS RETENTION_CHECKPOINT ROBOCASA_ASSETS_PATH RETENTION_SIM_PREFIX RETENTION_OPENPI_PREFIX RETENTION_QWEN_PREFIX; do
+    for key in RETENTION_HOME RETENTION_DATASETS RETENTION_CHECKPOINT ROBOCASA_ASSETS_PATH RETENTION_SIM_PREFIX RETENTION_OPENPI_PREFIX RETENTION_QWEN_PREFIX RETENTION_TOOLS_PREFIX; do
         [[ -n "${!key:-}" ]] || fail "set $key in cluster.env"
         shared_path "${!key}"
     done
-    case "$RETENTION_HOME/" in
-        /home/ma-user/work/model/xiaoyi_tmpstorage/*|/opt/huawei/quoteModel/xiaoyi_tmpstorage/*) ;;
-        *) fail "RETENTION_HOME must be under model/xiaoyi_tmpstorage" ;;
-    esac
+    # Use a user-writable directory on shared storage; do not assume access to
+    # the platform-owned xiaoyi_tmpstorage area.
     # Keep build products, tokenizer/model downloads and simulator images off code.
     export HF_HOME="$RETENTION_HOME/cache/huggingface" HF_HUB_CACHE="$RETENTION_HOME/cache/huggingface/hub"
     export XDG_CACHE_HOME="$RETENTION_HOME/cache/xdg" TORCH_HOME="$RETENTION_HOME/cache/torch"
@@ -74,10 +72,11 @@ load_settings() {
     export JAX_COMPILATION_CACHE_DIR="$RETENTION_HOME/cache/jax"
     export VLLM_CACHE_ROOT="$RETENTION_HOME/cache/vllm" TRITON_CACHE_DIR="$RETENTION_HOME/cache/triton"
     export UV_CACHE_DIR="$RETENTION_HOME/cache/uv" PIP_CACHE_DIR="$RETENTION_HOME/cache/pip"
+    export CONDA_PKGS_DIRS="$RETENTION_HOME/cache/conda/pkgs"
     export TMPDIR="$RETENTION_HOME/tmp" WANDB_DIR="$RETENTION_HOME/wandb"
     export WANDB_CACHE_DIR="$RETENTION_HOME/cache/wandb" PYTHONDONTWRITEBYTECODE=1
     export MUJOCO_GL=egl PYOPENGL_PLATFORM=egl XLA_PYTHON_CLIENT_PREALLOCATE=false
-    mkdir -p "$TMPDIR" "$RETENTION_HOME/configs" "$RETENTION_HOME/env" "$WANDB_DIR"
+    mkdir -p "$TMPDIR" "$RETENTION_HOME/configs" "$RETENTION_HOME/env" "$WANDB_DIR" "$UV_CACHE_DIR" "$PIP_CACHE_DIR" "$CONDA_PKGS_DIRS"
     # Ensure the submitted code wins over stale editable installs in shared envs.
     export PYTHONPATH="$RETENTION_CODE_ROOT"
 }
@@ -85,7 +84,7 @@ load_settings() {
 strip_environment_paths() {
     local key part prefix kept resolved
     local -a parts prefixes=()
-    for prefix in "$RETENTION_SIM_PREFIX" "$RETENTION_OPENPI_PREFIX" "$RETENTION_QWEN_PREFIX" "${CONDA_PREFIX:-}" "${CUDNN_HOME:-}"; do
+    for prefix in "$RETENTION_SIM_PREFIX" "$RETENTION_OPENPI_PREFIX" "$RETENTION_QWEN_PREFIX" "${RETENTION_TOOLS_PREFIX:-}" "${CONDA_PREFIX:-}" "${CUDNN_HOME:-}"; do
         [[ -n "$prefix" ]] || continue
         prefixes+=("$prefix")
         resolved="$(readlink -f "$prefix" || true)"

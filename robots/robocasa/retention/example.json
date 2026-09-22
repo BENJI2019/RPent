@@ -1,11 +1,11 @@
 {
-  "base_checkpoint": "/home/ma-user/work/model/xiaoyi_tmpstorage/hyy_files/rpent/checkpoints/robocasa365/pi05_pretrain_human300/multitask_learning/75000",
+  "base_checkpoint": "/home/ma-user/work/dataset/Common_wl/hyy_vla_retention/checkpoints/robocasa365/pi05_pretrain_human300/multitask_learning/75000",
   "checkpoint_revision": "robocasa/robocasa365_checkpoints@c484448aba1a9b60a04c9b0ca117241518ea69f3:pi05_pretrain_human300/multitask_learning/75000",
   "openpi_root": "/home/ma-user/work/algorithm/hyy_vla/rpent/vendor/openpi",
   "datasets_root": "/home/ma-user/work/dataset/hyy_vla/robocasa365/datasets",
-  "output_root": "/home/ma-user/work/model/xiaoyi_tmpstorage/hyy_files/rpent/retention_outputs/local/independent50",
-  "openpi_python": "/home/ma-user/work/model/xiaoyi_tmpstorage/hyy_files/rpent/runtime/local/independent50/openpi-python",
-  "simulator_python": "/home/ma-user/work/model/xiaoyi_tmpstorage/hyy_files/rpent/runtime/local/independent50/simulator-python",
+  "output_root": "/home/ma-user/work/dataset/Common_wl/hyy_vla_retention/retention_outputs/local/independent50",
+  "openpi_python": "/home/ma-user/work/dataset/Common_wl/hyy_vla_retention/runtime/local/independent50/openpi-python",
+  "simulator_python": "/home/ma-user/work/dataset/Common_wl/hyy_vla_retention/runtime/local/independent50/simulator-python",
   "methods": [
     "full"
   ],

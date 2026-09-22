@@ -32,10 +32,13 @@
      - /home/ma-user/work/model
      - /opt/huawei/quoteModel
 
-输出统一在 **model/xiaoyi_tmpstorage/hyy_files/rpent/**：
-configs、runtime、cache、tmp、env、checkpoints、retention_outputs。
+实验工作目录统一放在用户可写的
+**dataset/Common_wl/hyy_vla_retention/**：configs、runtime、uv/pip/Conda
+cache、tmp、env、checkpoints、retention_outputs。不要使用无权限的
+``model/xiaoyi_tmpstorage``。三个运行环境和独立 ``tools`` 环境放在
+``dataset/Common_wl/envs/``；工具环境只安装 uv 与 Hugging Face CLI。
 场景和 Target 示范在 dataset/hyy_vla/robocasa365；
-三个 Conda 环境在 dataset/Common_wl/envs。algorithm 只放代码与配置模板。
+algorithm 只放代码与配置模板。
 MTP 入口只在平台检查通过后创建路径软链，不覆盖已有真实目录或错误软链。
 本地入口完全不执行这组软链操作。
 
@@ -54,31 +57,39 @@ MTP 入口只在平台检查通过后创建路径软链，不覆盖已有真实�
    export RPENT_DIR="$PWD"
    export CLUSTER="$RPENT_DIR/robots/robocasa/retention/cluster"
    test -f "$CLUSTER/cluster.env" || cp "$CLUSTER/cluster.env.example" "$CLUSTER/cluster.env"
+   # 现在编辑 cluster.env：将 RETENTION_HOME 和四个环境 prefix 指向有写权限的 Common_wl 路径。
    export RETENTION_CODE_ROOT="$RPENT_DIR"
    source "$CLUSTER/common.sh"
    load_settings
+   mkdir -p "$RETENTION_HOME" "$RETENTION_HOME/cache/uv" "$RETENTION_HOME/cache/pip" "$RETENTION_HOME/cache/conda/pkgs"
+   mkdir -p "$(dirname "$RETENTION_TOOLS_PREFIX")"
+   test -w "$RETENTION_HOME" || { echo "RETENTION_HOME 不可写: $RETENTION_HOME" >&2; exit 1; }
+   test -w "$(dirname "$RETENTION_TOOLS_PREFIX")" || { echo "tools 环境父目录不可写: $RETENTION_TOOLS_PREFIX" >&2; exit 1; }
+   df -h "$RETENTION_HOME"
    export MINICONDA_PATH=/home/ma-user/work/dataset/Common_wl/miniconda3
    source "$MINICONDA_PATH/etc/profile.d/conda.sh"
 
-先检查并修改 cluster.env。模板里的三个 prefix 是**待创建的新环境路径**，不是已经发现的服务器环境。
+先检查并修改 cluster.env。模板里的四个 prefix 是**待创建的新环境路径**，不是已经发现的服务器环境。
+若已有 cluster.env，手动补上 RETENTION_TOOLS_PREFIX，并把 RETENTION_HOME 改到确认可写的目录；
+不要用示例文件覆盖已有设置。先完成这些修改，再运行 load_settings。
 复用现有环境时，分别激活、检查依赖，再将每次 echo "$CONDA_PREFIX" 的完整结果写入模板对应字段。
-不要只填环境短名。三个环境不能混装。每次新终端重新加载这一节的变量并激活仿真环境。
+不要只填环境短名。三个运行环境不能混装。每次新终端重新加载这一节的变量并激活仿真环境。
 
 2. 创建共享盘环境
 -----------------
 
 已有符合条件的环境可跳过创建命令。不要在 algorithm 里创建 .venv。
-工具环境仅提供 uv 和 hf，不改变三个运行环境的依赖。
+工具环境仅提供 uv 和 hf，不改变三个运行环境的依赖；它以及 Conda 包缓存、uv/pip 缓存
+都放在 Common_wl 或 RETENTION_HOME，不写入用户默认的只读缓存目录。
 
 .. code-block:: bash
 
    conda create -p "$RETENTION_SIM_PREFIX" python=3.11 pip -y
    conda create -p "$RETENTION_OPENPI_PREFIX" python=3.11 pip -y
    conda create -p "$RETENTION_QWEN_PREFIX" python=3.12 pip -y
-   export TOOLS_PREFIX="$RETENTION_HOME/envs/tools"
-   conda create -p "$TOOLS_PREFIX" python=3.12 pip -y
-   "$TOOLS_PREFIX/bin/python" -m pip install uv huggingface_hub
-   export PATH="$TOOLS_PREFIX/bin:$PATH"
+   conda create -p "$RETENTION_TOOLS_PREFIX" python=3.12 pip -y
+   "$RETENTION_TOOLS_PREFIX/bin/python" -m pip install uv huggingface_hub
+   export PATH="$RETENTION_TOOLS_PREFIX/bin:$PATH"
    conda activate "$RETENTION_SIM_PREFIX"
    echo "$CONDA_PREFIX"
    uv pip install --python "$RETENTION_SIM_PREFIX/bin/python" "$RPENT_DIR[test,robocasa-pi05]" \
@@ -238,7 +249,7 @@ num_workers、FSDP、示范比例、固定任务目录和训练适配代码。�
    bash "$CLUSTER/run_local.sh" init pilot1 pilot1-agent --with-planners
    bash "$CLUSTER/run_local.sh" train pilot1 pilot1-agent
    export VLLM_RELEASE=latest
-   export VLLM_WHEEL_URL="$("$TOOLS_PREFIX/bin/python" - <<'PY'
+   export VLLM_WHEEL_URL="$("$RETENTION_TOOLS_PREFIX/bin/python" - <<'PY'
    import json, os, platform, urllib.request
    release = os.environ["VLLM_RELEASE"]
    suffix = "latest" if release == "latest" else "tags/" + release

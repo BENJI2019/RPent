@@ -133,11 +133,11 @@ def cluster_resources(
     if sys.platform != "linux" or platform not in {"local", "mtp"}:
         raise ValueError("Huawei preparation requires a Linux local/MTP launcher")
     home = values["RETENTION_HOME"]
-    shared_models = SHARED_MODEL_ROOTS
-    if not any(
-        home.is_relative_to(root / "xiaoyi_tmpstorage") for root in shared_models
-    ):
-        raise ValueError("RETENTION_HOME must be on model/xiaoyi_tmpstorage")
+    shared_roots = (*SHARED_MODEL_ROOTS, *SHARED_DATASET_ROOTS)
+    if not any(home.is_relative_to(root) and home != root for root in shared_roots):
+        raise ValueError(
+            "RETENTION_HOME must be a user directory on a shared dataset/model volume"
+        )
     if not destination.resolve().is_relative_to(home.resolve()):
         raise ValueError(
             "Huawei configuration and setup reports must be under RETENTION_HOME"
@@ -155,7 +155,7 @@ def cluster_resources(
         ("openpi", "RETENTION_OPENPI_PREFIX", "openpi_python"),
     ):
         prefix = values[variable]
-        allowed = (*shared_models, *SHARED_DATASET_ROOTS)
+        allowed = shared_roots
         if not any(prefix.is_relative_to(p) for p in allowed):
             raise ValueError(
                 f"{variable} must refer to an environment on a shared volume"

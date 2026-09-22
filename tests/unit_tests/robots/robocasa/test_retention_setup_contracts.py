@@ -95,6 +95,33 @@ def test_initialize_resolves_paths_and_protects_existing_configuration(tmp_path)
     assert repeated.output_root == str(tmp_path / "runs/pilot-new")
 
 
+def test_huawei_cluster_resources_accepts_user_workspace_on_shared_dataset(
+    tmp_path, monkeypatch
+):
+    dataset = tmp_path / "dataset"
+    home = dataset / "Common_wl/hyy_vla_retention"
+    code_root = Path(prepare.__file__).resolve().parents[3]
+    monkeypatch.setattr(prepare, "SHARED_MODEL_ROOTS", (tmp_path / "model",))
+    monkeypatch.setattr(prepare, "SHARED_DATASET_ROOTS", (dataset,))
+    monkeypatch.setattr(prepare.sys, "platform", "linux")
+    for name, value in {
+        "RETENTION_HOME": home,
+        "RETENTION_CODE_ROOT": code_root,
+        "RETENTION_DATASETS": dataset / "target",
+        "RETENTION_CHECKPOINT": home / "checkpoint",
+        "RETENTION_SIM_PREFIX": dataset / "Common_wl/envs/simulator",
+        "RETENTION_OPENPI_PREFIX": dataset / "Common_wl/envs/openpi",
+        "RETENTION_EXECUTION": "local",
+    }.items():
+        monkeypatch.setenv(name, str(value))
+
+    destination = home / "configs/local/pilot.json"
+    result = prepare.cluster_resources(destination, "pilot1", None)
+
+    assert result["output_root"] == str(home / "retention_outputs/local/pilot1")
+    assert Path(result["openpi_python"]).is_relative_to(home)
+
+
 def test_training_data_plan_excludes_old_evaluation_probes(setup_config):
     cfg, _ = setup_config
     paths = prepare.target_paths(cfg)

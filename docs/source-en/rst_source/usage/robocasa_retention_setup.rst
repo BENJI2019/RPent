@@ -33,12 +33,16 @@ the platform entry path. Scripts locate their checkout through SCRIPT_DIR.
      - /home/ma-user/work/model
      - /opt/huawei/quoteModel
 
-Keep configs, runtime wrappers, cache, tmp, env records, checkpoints and
-retention_outputs under **model/xiaoyi_tmpstorage/hyy_files/rpent/**.
-Assets and Target demonstrations use dataset/hyy_vla/robocasa365; Conda environments
-use dataset/Common_wl/envs. The algorithm package contains code and configuration
-templates. Only the MTP entry creates mount aliases after validating platform
-metadata; it refuses conflicting paths. The local entry never creates those aliases.
+Put the retention workspace under the user-writable
+**dataset/Common_wl/hyy_vla_retention/** directory: configs, runtime wrappers,
+uv/pip/Conda caches, tmp, environment records, checkpoints and outputs. Do not
+use the inaccessible model/xiaoyi_tmpstorage area. Keep the three runtime
+Conda environments and the separate tools environment under
+dataset/Common_wl/envs/; tools contains only uv and the Hugging Face CLI.
+Assets and Target demonstrations use dataset/hyy_vla/robocasa365. The algorithm
+package contains code and configuration templates. Only the MTP entry creates
+mount aliases after validating platform metadata; it refuses conflicting paths.
+The local entry never creates those aliases.
 
 1. Inspect the local host and set paths
 ---------------------------------------
@@ -57,16 +61,24 @@ Ubuntu is not assumed.
    export RPENT_DIR="$PWD"
    export CLUSTER="$RPENT_DIR/robots/robocasa/retention/cluster"
    test -f "$CLUSTER/cluster.env" || cp "$CLUSTER/cluster.env.example" "$CLUSTER/cluster.env"
+   # Edit cluster.env now: point RETENTION_HOME and all four prefixes to writable Common_wl paths.
    export RETENTION_CODE_ROOT="$RPENT_DIR"
    source "$CLUSTER/common.sh"
    load_settings
+   mkdir -p "$RETENTION_HOME" "$RETENTION_HOME/cache/uv" "$RETENTION_HOME/cache/pip" "$RETENTION_HOME/cache/conda/pkgs"
+   mkdir -p "$(dirname "$RETENTION_TOOLS_PREFIX")"
+   test -w "$RETENTION_HOME" || { echo "RETENTION_HOME is not writable: $RETENTION_HOME" >&2; exit 1; }
+   test -w "$(dirname "$RETENTION_TOOLS_PREFIX")" || { echo "tools environment parent is not writable: $RETENTION_TOOLS_PREFIX" >&2; exit 1; }
+   df -h "$RETENTION_HOME"
    export MINICONDA_PATH=/home/ma-user/work/dataset/Common_wl/miniconda3
    source "$MINICONDA_PATH/etc/profile.d/conda.sh"
 
-Inspect cluster.env first. Its three prefixes are proposed **new environment paths**,
+Inspect cluster.env first. Its four prefixes are proposed **new environment paths**,
 not detected installations. To reuse an existing environment, activate and validate
 it locally, then paste the exact output of echo "$CONDA_PREFIX" into the matching
-field. Do not use short names or combine the three dependency stacks.
+field. If cluster.env already exists, add RETENTION_TOOLS_PREFIX and change
+RETENTION_HOME to a verified writable directory; do not overwrite existing settings.
+Do not use short names or combine the three runtime dependency stacks.
 In each new terminal, reload these settings and activate the simulator environment.
 
 2. Create environments on shared storage
@@ -74,17 +86,17 @@ In each new terminal, reload these settings and activate the simulator environme
 
 Skip creation for existing validated environments. Do not create .venv inside
 algorithm. The tools environment supplies uv and hf without modifying runtime
-dependencies.
+dependencies. It and the Conda/uv/pip caches stay under Common_wl or RETENTION_HOME,
+not the default user cache location.
 
 .. code-block:: bash
 
    conda create -p "$RETENTION_SIM_PREFIX" python=3.11 pip -y
    conda create -p "$RETENTION_OPENPI_PREFIX" python=3.11 pip -y
    conda create -p "$RETENTION_QWEN_PREFIX" python=3.12 pip -y
-   export TOOLS_PREFIX="$RETENTION_HOME/envs/tools"
-   conda create -p "$TOOLS_PREFIX" python=3.12 pip -y
-   "$TOOLS_PREFIX/bin/python" -m pip install uv huggingface_hub
-   export PATH="$TOOLS_PREFIX/bin:$PATH"
+   conda create -p "$RETENTION_TOOLS_PREFIX" python=3.12 pip -y
+   "$RETENTION_TOOLS_PREFIX/bin/python" -m pip install uv huggingface_hub
+   export PATH="$RETENTION_TOOLS_PREFIX/bin:$PATH"
    conda activate "$RETENTION_SIM_PREFIX"
    echo "$CONDA_PREFIX"
    uv pip install --python "$RETENTION_SIM_PREFIX/bin/python" "$RPENT_DIR[test,robocasa-pi05]" \
@@ -264,7 +276,7 @@ Switching planners does not require changing training tasks.
    bash "$CLUSTER/run_local.sh" init pilot1 pilot1-agent --with-planners
    bash "$CLUSTER/run_local.sh" train pilot1 pilot1-agent
    export VLLM_RELEASE=latest
-   export VLLM_WHEEL_URL="$("$TOOLS_PREFIX/bin/python" - <<'PY'
+   export VLLM_WHEEL_URL="$("$RETENTION_TOOLS_PREFIX/bin/python" - <<'PY'
    import json, os, platform, urllib.request
    release = os.environ["VLLM_RELEASE"]
    suffix = "latest" if release == "latest" else "tags/" + release
