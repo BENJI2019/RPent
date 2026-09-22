@@ -32,11 +32,10 @@
      - /home/ma-user/work/model
      - /opt/huawei/quoteModel
 
-实验工作目录统一放在用户可写的
-**dataset/Common_wl/hyy_vla_retention/**：configs、runtime、uv/pip/Conda
-cache、tmp、env、checkpoints、retention_outputs。不要使用无权限的
-``model/xiaoyi_tmpstorage``。三个运行环境和独立 ``tools`` 环境放在
-``dataset/Common_wl/envs/``；工具环境只安装 uv 与 Hugging Face CLI。
+实验工作目录放在已确认可写的
+**model/xiaoyi_tmpstorage/hyy_files/rpent/**：configs、runtime、uv/pip/Conda
+cache、tmp、env、checkpoints、retention_outputs。三个运行环境和独立 ``tools`` 环境放在
+``dataset/Common_wl/miniconda3/envs/``；工具环境只安装 uv 与 Hugging Face CLI。
 场景和 Target 示范在 dataset/hyy_vla/robocasa365；
 algorithm 只放代码与配置模板。
 MTP 入口只在平台检查通过后创建路径软链，不覆盖已有真实目录或错误软链。
@@ -57,7 +56,8 @@ MTP 入口只在平台检查通过后创建路径软链，不覆盖已有真实�
    export RPENT_DIR="$PWD"
    export CLUSTER="$RPENT_DIR/robots/robocasa/retention/cluster"
    test -f "$CLUSTER/cluster.env" || cp "$CLUSTER/cluster.env.example" "$CLUSTER/cluster.env"
-   # 现在编辑 cluster.env：将 RETENTION_HOME 和四个环境 prefix 指向有写权限的 Common_wl 路径。
+   # 现在编辑 cluster.env：RETENTION_HOME 指向有写权限的 xiaoyi_tmpstorage；
+   # 四个 Conda prefix 指向 Common_wl/miniconda3/envs。
    export RETENTION_CODE_ROOT="$RPENT_DIR"
    source "$CLUSTER/common.sh"
    load_settings
@@ -80,7 +80,8 @@ MTP 入口只在平台检查通过后创建路径软链，不覆盖已有真实�
 
 已有符合条件的环境可跳过创建命令。不要在 algorithm 里创建 .venv。
 工具环境仅提供 uv 和 hf，不改变三个运行环境的依赖；它以及 Conda 包缓存、uv/pip 缓存
-都放在 Common_wl 或 RETENTION_HOME，不写入用户默认的只读缓存目录。
+tools 环境放在 Common_wl/miniconda3/envs；Conda/uv/pip 缓存放在 RETENTION_HOME，
+不写入用户默认的只读缓存目录。
 
 .. code-block:: bash
 

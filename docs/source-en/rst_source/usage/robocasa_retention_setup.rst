@@ -33,12 +33,11 @@ the platform entry path. Scripts locate their checkout through SCRIPT_DIR.
      - /home/ma-user/work/model
      - /opt/huawei/quoteModel
 
-Put the retention workspace under the user-writable
-**dataset/Common_wl/hyy_vla_retention/** directory: configs, runtime wrappers,
-uv/pip/Conda caches, tmp, environment records, checkpoints and outputs. Do not
-use the inaccessible model/xiaoyi_tmpstorage area. Keep the three runtime
-Conda environments and the separate tools environment under
-dataset/Common_wl/envs/; tools contains only uv and the Hugging Face CLI.
+Put the retention workspace under the verified user-writable
+**model/xiaoyi_tmpstorage/hyy_files/rpent/** directory: configs, runtime
+wrappers, uv/pip/Conda caches, tmp, environment records, checkpoints and outputs.
+Keep the three runtime Conda environments and the separate tools environment under
+dataset/Common_wl/miniconda3/envs/; tools contains only uv and the Hugging Face CLI.
 Assets and Target demonstrations use dataset/hyy_vla/robocasa365. The algorithm
 package contains code and configuration templates. Only the MTP entry creates
 mount aliases after validating platform metadata; it refuses conflicting paths.
@@ -61,7 +60,8 @@ Ubuntu is not assumed.
    export RPENT_DIR="$PWD"
    export CLUSTER="$RPENT_DIR/robots/robocasa/retention/cluster"
    test -f "$CLUSTER/cluster.env" || cp "$CLUSTER/cluster.env.example" "$CLUSTER/cluster.env"
-   # Edit cluster.env now: point RETENTION_HOME and all four prefixes to writable Common_wl paths.
+   # Edit cluster.env now: RETENTION_HOME goes under writable xiaoyi_tmpstorage;
+   # all four Conda prefixes go under Common_wl/miniconda3/envs.
    export RETENTION_CODE_ROOT="$RPENT_DIR"
    source "$CLUSTER/common.sh"
    load_settings
@@ -86,8 +86,8 @@ In each new terminal, reload these settings and activate the simulator environme
 
 Skip creation for existing validated environments. Do not create .venv inside
 algorithm. The tools environment supplies uv and hf without modifying runtime
-dependencies. It and the Conda/uv/pip caches stay under Common_wl or RETENTION_HOME,
-not the default user cache location.
+dependencies. The tools environment stays under Common_wl/miniconda3/envs;
+Conda/uv/pip caches stay under RETENTION_HOME, not the default user cache location.
 
 .. code-block:: bash
 

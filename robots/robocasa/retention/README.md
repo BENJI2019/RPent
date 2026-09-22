@@ -14,9 +14,9 @@
 
 本机代码目录为 `/home/ma-user/work/algorithm/hyy_vla/rpent`。
 按指南配置 `cluster/cluster.env`，三个运行 Conda 环境和独立工具环境位于
-`/home/ma-user/work/dataset/Common_wl/envs/`，分别记录本机实际的绝对 prefix。
+`/home/ma-user/work/dataset/Common_wl/miniconda3/envs/`，分别记录本机实际的绝对 prefix。
 工作目录、uv/pip/Conda 缓存、检查点和输出默认放到
-`/home/ma-user/work/dataset/Common_wl/hyy_vla_retention/`；
+`/home/ma-user/work/model/xiaoyi_tmpstorage/hyy_files/rpent/`；
 代码包内不创建环境、缓存、数据或训练结果。
 
 在本地已激活仿真环境后，从项目根目录执行：

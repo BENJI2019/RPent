@@ -63,8 +63,7 @@ load_settings() {
         [[ -n "${!key:-}" ]] || fail "set $key in cluster.env"
         shared_path "${!key}"
     done
-    # Use a user-writable directory on shared storage; do not assume access to
-    # the platform-owned xiaoyi_tmpstorage area.
+    # RETENTION_HOME must be a verified user-writable directory on shared storage.
     # Keep build products, tokenizer/model downloads and simulator images off code.
     export HF_HOME="$RETENTION_HOME/cache/huggingface" HF_HUB_CACHE="$RETENTION_HOME/cache/huggingface/hub"
     export XDG_CACHE_HOME="$RETENTION_HOME/cache/xdg" TORCH_HOME="$RETENTION_HOME/cache/torch"

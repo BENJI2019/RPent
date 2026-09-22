@@ -95,13 +95,13 @@ def test_initialize_resolves_paths_and_protects_existing_configuration(tmp_path)
     assert repeated.output_root == str(tmp_path / "runs/pilot-new")
 
 
-def test_huawei_cluster_resources_accepts_user_workspace_on_shared_dataset(
+def test_huawei_cluster_resources_accepts_user_workspace_on_shared_model_volume(
     tmp_path, monkeypatch
 ):
-    dataset = tmp_path / "dataset"
-    home = dataset / "Common_wl/hyy_vla_retention"
+    dataset, model = tmp_path / "dataset", tmp_path / "model"
+    home = model / "xiaoyi_tmpstorage/hyy_files/rpent"
     code_root = Path(prepare.__file__).resolve().parents[3]
-    monkeypatch.setattr(prepare, "SHARED_MODEL_ROOTS", (tmp_path / "model",))
+    monkeypatch.setattr(prepare, "SHARED_MODEL_ROOTS", (model,))
     monkeypatch.setattr(prepare, "SHARED_DATASET_ROOTS", (dataset,))
     monkeypatch.setattr(prepare.sys, "platform", "linux")
     for name, value in {
@@ -109,8 +109,8 @@ def test_huawei_cluster_resources_accepts_user_workspace_on_shared_dataset(
         "RETENTION_CODE_ROOT": code_root,
         "RETENTION_DATASETS": dataset / "target",
         "RETENTION_CHECKPOINT": home / "checkpoint",
-        "RETENTION_SIM_PREFIX": dataset / "Common_wl/envs/simulator",
-        "RETENTION_OPENPI_PREFIX": dataset / "Common_wl/envs/openpi",
+        "RETENTION_SIM_PREFIX": dataset / "Common_wl/miniconda3/envs/simulator",
+        "RETENTION_OPENPI_PREFIX": dataset / "Common_wl/miniconda3/envs/openpi",
         "RETENTION_EXECUTION": "local",
     }.items():
         monkeypatch.setenv(name, str(value))
