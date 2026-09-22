@@ -36,8 +36,9 @@
 **model/xiaoyi_tmpstorage/hyy_files/rpent/**：configs、runtime、uv/pip/Conda
 cache、tmp、env、checkpoints、retention_outputs。三个运行环境和独立 ``tools`` 环境放在
 ``dataset/Common_wl/miniconda3/envs/``；工具环境只安装 uv 与 Hugging Face CLI。
-场景和 Target 示范在 dataset/hyy_vla/robocasa365；
-algorithm 只放代码与配置模板。
+本工作区复用 model/xiaoyi_tmpstorage/hyy_files/robocasa365 中已有的 RoboCasa
+assets 和 checkpoint；RETENTION_DATASETS 指向 dataset/recaption60M 下已有的 robocasa365
+目录。这些都在共享盘上，直接配置路径即可，不需要软链。algorithm 只放代码与配置模板。
 MTP 入口只在平台检查通过后创建路径软链，不覆盖已有真实目录或错误软链。
 本地入口完全不执行这组软链操作。
 
@@ -56,8 +57,8 @@ MTP 入口只在平台检查通过后创建路径软链，不覆盖已有真实�
    export RPENT_DIR="$PWD"
    export CLUSTER="$RPENT_DIR/robots/robocasa/retention/cluster"
    test -f "$CLUSTER/cluster.env" || cp "$CLUSTER/cluster.env.example" "$CLUSTER/cluster.env"
-   # 现在编辑 cluster.env：RETENTION_HOME 指向有写权限的 xiaoyi_tmpstorage；
-   # 四个 Conda prefix 指向 Common_wl/miniconda3/envs。
+   # 现在编辑 cluster.env：保留 RETENTION_HOME 和 Conda prefix；
+   # assets/checkpoint 指向 model 盘已有目录，RETENTION_DATASETS 指向现有数据根目录。
    export RETENTION_CODE_ROOT="$RPENT_DIR"
    source "$CLUSTER/common.sh"
    load_settings
@@ -140,10 +141,22 @@ configure_cuda /home/ma-user/work/dataset；它不会创建 MTP 软链。
 3. 下载资产、权重和一个任务的数据
 ---------------------------------
 
+若复用已有文件，请在运行 ``init`` 前先在 cluster.env 配好路径：
+ROBOCASA_ASSETS_PATH 填已有的 ``assets`` 目录；RETENTION_CHECKPOINT 填包含
+``params/`` 和 ``assets/**/norm_stats.json`` 的 checkpoint 目录；RETENTION_DATASETS
+填 ``v1.0/`` 的直接父目录。本配置中 pilot1 的 OpenDrawer 数据应位于
+``$RETENTION_DATASETS/v1.0/target/atomic/OpenDrawer/20250816/lerobot``。
+这几个目录都在共享盘上，直接设置路径即可，不需要软链。checkpoint 已完整时不要重复运行权重下载；
+RoboCasa 资产下载命令带有 ``--skip-existing``，可在需要补齐缺失资产时重跑。
+
 .. code-block:: bash
 
+   test -d "$ROBOCASA_ASSETS_PATH"
+   test -d "$RETENTION_CHECKPOINT/params"
+   test -d "$RETENTION_DATASETS/v1.0/target/atomic/OpenDrawer/20250816/lerobot"
    "$RETENTION_SIM_PREFIX/bin/robocasa-download-assets" \
      --assets-path "$ROBOCASA_ASSETS_PATH" --no-macros --skip-existing -y
+   # 仅当 RETENTION_CHECKPOINT 不存在或未通过检查时才运行权重下载。
    hf download robocasa/robocasa365_checkpoints \
      --revision c484448aba1a9b60a04c9b0ca117241518ea69f3 \
      --include "pi05_pretrain_human300/multitask_learning/75000/**" \
@@ -154,8 +167,9 @@ configure_cuda /home/ma-user/work/dataset；它不会创建 MTP 软链。
    bash "$CLUSTER/run_local.sh" python openpi -c \
      "from openpi.models.tokenizer import PaligemmaTokenizer; PaligemmaTokenizer()"
 
-如果修改了 RETENTION_CHECKPOINT，下载的 local-dir 也应与该位置一致。权重必须包含 params 和
-``assets/**/norm_stats.json``。只下载所选任务的 Target Human 示范，不下载 Pretraining 示范。
+checkpoint 必须包含 params 和 ``assets/**/norm_stats.json``。若下载到 RETENTION_HOME，
+RETENTION_CHECKPOINT 应设为下载目录下对应的 ``.../multitask_learning/75000``。
+只下载所选任务的 Target Human 示范，不下载 Pretraining 示范。
 pilot1 只下载 OpenDrawer；已有完整目录会跳过，已有不完整目录会报错，避免覆盖。
 先检查该任务具体目录，再将残缺数据移到备份位置后重试。数据检查核对元数据和视频/轨迹数量，
 不代表完成全量解码或校验和验证。保存资产的 attribution 文件。

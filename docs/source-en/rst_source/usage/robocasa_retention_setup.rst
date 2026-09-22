@@ -38,8 +38,11 @@ Put the retention workspace under the verified user-writable
 wrappers, uv/pip/Conda caches, tmp, environment records, checkpoints and outputs.
 Keep the three runtime Conda environments and the separate tools environment under
 dataset/Common_wl/miniconda3/envs/; tools contains only uv and the Hugging Face CLI.
-Assets and Target demonstrations use dataset/hyy_vla/robocasa365. The algorithm
-package contains code and configuration templates. Only the MTP entry creates
+For this workspace, reuse the existing RoboCasa assets and checkpoint under
+model/xiaoyi_tmpstorage/hyy_files/robocasa365, and set RETENTION_DATASETS to the
+existing robocasa365 directory under dataset/recaption60M. These are shared-volume
+paths; no symlink is needed. The algorithm package contains code and configuration
+templates. Only the MTP entry creates
 mount aliases after validating platform metadata; it refuses conflicting paths.
 The local entry never creates those aliases.
 
@@ -60,8 +63,8 @@ Ubuntu is not assumed.
    export RPENT_DIR="$PWD"
    export CLUSTER="$RPENT_DIR/robots/robocasa/retention/cluster"
    test -f "$CLUSTER/cluster.env" || cp "$CLUSTER/cluster.env.example" "$CLUSTER/cluster.env"
-   # Edit cluster.env now: RETENTION_HOME goes under writable xiaoyi_tmpstorage;
-   # all four Conda prefixes go under Common_wl/miniconda3/envs.
+   # Edit cluster.env now: keep RETENTION_HOME and Conda prefixes as configured;
+   # point assets/checkpoint to existing model storage and RETENTION_DATASETS to the existing data root.
    export RETENTION_CODE_ROOT="$RPENT_DIR"
    source "$CLUSTER/common.sh"
    load_settings
@@ -151,10 +154,25 @@ storage while retaining the upstream optimizer and source checkout.
 3. Download assets, weights and one task's data
 -----------------------------------------------
 
+Reuse existing files by setting these paths in cluster.env before ``init``:
+ROBOCASA_ASSETS_PATH should be the existing ``assets`` directory;
+RETENTION_CHECKPOINT should be the checkpoint directory containing ``params/`` and
+``assets/**/norm_stats.json``; RETENTION_DATASETS should be the directory immediately
+above ``v1.0/``. In this setup, pilot1's OpenDrawer data is expected at
+``$RETENTION_DATASETS/v1.0/target/atomic/OpenDrawer/20250816/lerobot``. No symlinks
+are needed because all three existing locations are on shared dataset/model volumes.
+Do not run the checkpoint download when the configured checkpoint is already complete.
+The RoboCasa asset downloader can be rerun with ``--skip-existing`` to fill missing
+asset files without downloading existing ones.
+
 .. code-block:: bash
 
+   test -d "$ROBOCASA_ASSETS_PATH"
+   test -d "$RETENTION_CHECKPOINT/params"
+   test -d "$RETENTION_DATASETS/v1.0/target/atomic/OpenDrawer/20250816/lerobot"
    "$RETENTION_SIM_PREFIX/bin/robocasa-download-assets" \
      --assets-path "$ROBOCASA_ASSETS_PATH" --no-macros --skip-existing -y
+   # Only run this download if RETENTION_CHECKPOINT does not already exist and validate.
    hf download robocasa/robocasa365_checkpoints \
      --revision c484448aba1a9b60a04c9b0ca117241518ea69f3 \
      --include "pi05_pretrain_human300/multitask_learning/75000/**" \
@@ -165,8 +183,9 @@ storage while retaining the upstream optimizer and source checkout.
    bash "$CLUSTER/run_local.sh" python openpi -c \
      "from openpi.models.tokenizer import PaligemmaTokenizer; PaligemmaTokenizer()"
 
-If RETENTION_CHECKPOINT is overridden, adjust the download local-dir accordingly.
-The checkpoint must include params and ``assets/**/norm_stats.json``. Download only
+The checkpoint must include params and ``assets/**/norm_stats.json``. If downloading
+to RETENTION_HOME, set RETENTION_CHECKPOINT to the corresponding downloaded
+``.../multitask_learning/75000`` directory. Download only
 selected Target Human demonstrations, never pretraining demonstrations. pilot1
 selects OpenDrawer. Complete datasets are skipped; partial directories cause an
 error rather than being overwritten. Inspect and move the affected partial task
