@@ -9,4 +9,6 @@
 
    LIBERO <libero>
    RoboCasa <robocasa>
+   RoboCasa π0.5 能力保持实验 <robocasa_retention>
+   RoboCasa π0.5 部署与训练步骤 <robocasa_retention_setup>
    RoboTwin <robotwin>

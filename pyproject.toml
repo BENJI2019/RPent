@@ -119,6 +119,12 @@ robocasa = [
     "rlinf-rldx @ git+https://github.com/RLinf/RLDX-1.git@rpent",
     "robosuite @ git+https://github.com/RLinf/robosuite.git@rpent",
 ]
+robocasa-pi05 = [
+    # Simulator and Harness runtime only; benchmark OpenPI uses its own environment.
+    "torch>=2.7",
+    "rpent-robocasa365 @ git+https://github.com/RLinf/robocasa.git@rpent",
+    "robosuite @ git+https://github.com/RLinf/robosuite.git@rpent",
+]
 flywheel = [
     "lerobot>=0.3.3,<0.4",
 ]

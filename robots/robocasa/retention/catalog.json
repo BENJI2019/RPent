@@ -1,0 +1,1366 @@
+{
+  "schema_version": 1,
+  "source_url": "https://github.com/robocasa/robocasa/blob/4f8a2980def75a55dff96b990745b83540425f09/robocasa/utils/dataset_registry.py",
+  "source_sha256": "23e8e31bb56bae80de86c34eafadfe32dd1e1eba6608376152ba9fdda5532a4b",
+  "openpi_revision": "5a6beda9ff99da30b4e1b59320f6a32971d7c397",
+  "pretrain300": [
+    "AdjustToasterOvenTemperature",
+    "AdjustWaterTemperature",
+    "CloseBlenderLid",
+    "CloseCabinet",
+    "CloseDishwasher",
+    "CloseDrawer",
+    "CloseElectricKettleLid",
+    "CloseFridge",
+    "CloseFridgeDrawer",
+    "CloseMicrowave",
+    "CloseOven",
+    "CloseStandMixerHead",
+    "CloseToasterOvenDoor",
+    "CoffeeServeMug",
+    "CoffeeSetupMug",
+    "NavigateKitchen",
+    "OpenBlenderLid",
+    "OpenCabinet",
+    "OpenDishwasher",
+    "OpenDrawer",
+    "OpenElectricKettleLid",
+    "OpenFridge",
+    "OpenFridgeDrawer",
+    "OpenMicrowave",
+    "OpenOven",
+    "OpenStandMixerHead",
+    "OpenToasterOvenDoor",
+    "PickPlaceCabinetToCounter",
+    "PickPlaceCounterToBlender",
+    "PickPlaceCounterToCabinet",
+    "PickPlaceCounterToDrawer",
+    "PickPlaceCounterToMicrowave",
+    "PickPlaceCounterToOven",
+    "PickPlaceCounterToSink",
+    "PickPlaceCounterToStandMixer",
+    "PickPlaceCounterToStove",
+    "PickPlaceCounterToToasterOven",
+    "PickPlaceDrawerToCounter",
+    "PickPlaceFridgeDrawerToShelf",
+    "PickPlaceFridgeShelfToDrawer",
+    "PickPlaceMicrowaveToCounter",
+    "PickPlaceSinkToCounter",
+    "PickPlaceStoveToCounter",
+    "PickPlaceToasterOvenToCounter",
+    "PickPlaceToasterToCounter",
+    "PreheatOven",
+    "SlideDishwasherRack",
+    "SlideOvenRack",
+    "SlideToasterOvenRack",
+    "StartCoffeeMachine",
+    "TurnOffMicrowave",
+    "TurnOffSinkFaucet",
+    "TurnOffStove",
+    "TurnOnBlender",
+    "TurnOnElectricKettle",
+    "TurnOnMicrowave",
+    "TurnOnSinkFaucet",
+    "TurnOnStove",
+    "TurnOnToaster",
+    "TurnOnToasterOven",
+    "TurnSinkSpout",
+    "PackDessert",
+    "MakeIcedCoffee",
+    "CheesyBread",
+    "LowerHeat",
+    "AddIceCubes",
+    "AddLemonToFish",
+    "AddMarshmallow",
+    "AddSugarCubes",
+    "AddSweetener",
+    "AdjustHeat",
+    "AfterwashSorting",
+    "AirDryFruit",
+    "AlcoholServingPrep",
+    "AlignSilverware",
+    "ArrangeBreadBowl",
+    "ArrangeBuffetDessert",
+    "ArrangeDrinkware",
+    "ArrangeTeaAccompaniments",
+    "ArrangeUtensilsByType",
+    "ArrangeVegetables",
+    "AssembleCookingArray",
+    "BalancedMealPrep",
+    "BeverageOrganization",
+    "BeverageSorting",
+    "BlendIngredients",
+    "BlendMarinade",
+    "BowlAndCup",
+    "BreadAndCheese",
+    "BreadSetupSlicing",
+    "BuildAppetizerPlate",
+    "ButterOnPan",
+    "CandleCleanup",
+    "CerealAndBowl",
+    "ChooseMeasuringCup",
+    "ChooseRipeFruit",
+    "CleanBoard",
+    "CleanMicrowave",
+    "ClearClutter",
+    "ClearCuttingBoard",
+    "ClearFoodWaste",
+    "ClearFreezer",
+    "ClearReceptaclesForCleaning",
+    "ClearSink",
+    "ClearSinkArea",
+    "ClearSinkSpace",
+    "CollectWashingSupplies",
+    "ColorfulSalsa",
+    "CondimentCollection",
+    "CookieDoughPrep",
+    "CoolBakedCake",
+    "CoolKettle",
+    "CreateChildFriendlyFridge",
+    "CupcakeCleanup",
+    "CutBuffetPizza",
+    "DateNight",
+    "DefrostByCategory",
+    "DeliverBrewedCoffee",
+    "DeliverStraw",
+    "DessertAssembly",
+    "DessertUpgrade",
+    "DisplayMeatVariety",
+    "DistributeChicken",
+    "DivideBasins",
+    "DivideBuffetTrays",
+    "DrainVeggies",
+    "DrinkwareConsolidation",
+    "DryDishes",
+    "DryDrinkware",
+    "DumpLeftovers",
+    "FillBlenderJug",
+    "FillKettle",
+    "FilterMicrowavableItem",
+    "FoodCleanup",
+    "FreezeBottledWaters",
+    "FreezeCookedFood",
+    "FreezeIceTray",
+    "FreshProduceOrganization",
+    "FryingPanAdjustment",
+    "GarnishCupcake",
+    "GatherCuttingTools",
+    "GatherMarinadeIngredients",
+    "GatherVegetables",
+    "GetToastedBread",
+    "HeatMug",
+    "HeatMultipleWater",
+    "HotDogSetup",
+    "JuiceFruitReamer",
+    "KettleBoiling",
+    "LemonSeasoningFish",
+    "LineUpCondiments",
+    "LoadCondimentsInFridge",
+    "LoadDishwasher",
+    "LoadFridgeByType",
+    "LoadFridgeFifo",
+    "LoadPreparedFood",
+    "MakeFruitBowl",
+    "MakeLoadedPotato",
+    "MatchCupAndDrink",
+    "MaximizeFreezerSpace",
+    "MealPrepStaging",
+    "MeatSkewerAssembly",
+    "MeatTransfer",
+    "MicrowaveCorrectMeal",
+    "MicrowaveDefrostMeat",
+    "MicrowaveThawing",
+    "MicrowaveThawingFridge",
+    "MixCakeFrosting",
+    "MixedFruitPlatter",
+    "MoveFreezerToFridge",
+    "MoveFridgeToFreezer",
+    "MoveToCounter",
+    "MoveToFreezerDrawer",
+    "MultistepSteaming",
+    "OrganizeBakingIngredients",
+    "OrganizeCleaningSupplies",
+    "OrganizeCoffeeCondiments",
+    "OrganizeCondiments",
+    "OrganizeMetallicUtensils",
+    "OrganizeVegetables",
+    "OvenBroilFish",
+    "OrganizeMugsByHandle",
+    "PackFoodByTemp",
+    "PackFruitContainer",
+    "PackIdenticalLunches",
+    "PastryDisplay",
+    "PlaceBeveragesTogether",
+    "PlaceDishesBySink",
+    "PlaceEqualIceCubes",
+    "PlaceFoodInBowls",
+    "PlaceIceInCup",
+    "PlaceMeatInMarinade",
+    "PlaceMicrowaveSafeItem",
+    "PlaceStraw",
+    "PlaceVegetablesEvenly",
+    "PlaceVeggiesInDrawer",
+    "PlateSteakMeal",
+    "PlateStoreDinner",
+    "PortionFruitBowl",
+    "PortionInTupperware",
+    "PortionOnSize",
+    "PortionYogurt",
+    "PreRinseStation",
+    "PreSoakPan",
+    "PreheatPot",
+    "PrepForSanitizing",
+    "PrepForTenderizing",
+    "PrepFridgeForCleaning",
+    "PrepMarinatingMeat",
+    "PrepSinkForCleaning",
+    "PrepareBroilingStation",
+    "PrepareCheeseStation",
+    "PrepareCocktailStation",
+    "PrepareCoffee",
+    "PrepareDishwasher",
+    "PrepareDrinkStation",
+    "PrepareSausageCheese",
+    "PrepareSmoothie",
+    "PrepareSoupServing",
+    "PrepareStoringLeftovers",
+    "PrepareToast",
+    "PressChicken",
+    "PrewashFoodAssembly",
+    "PrewashFoodSorting",
+    "QuickThaw",
+    "RearrangeFridgeItems",
+    "RecycleBottlesBySize",
+    "RecycleSodaCans",
+    "RecycleStackedYogurt",
+    "RefillCondimentStation",
+    "ReheatMeal",
+    "RemoveBroiledFish",
+    "RemoveCuttingBoardItems",
+    "ReorganizeFrozenVegetables",
+    "ResetCabinetDoors",
+    "RestockBowls",
+    "RestockCannedFood",
+    "RestockPantry",
+    "RestockSinkSupplies",
+    "RetrieveIceTray",
+    "RetrieveMeat",
+    "ReturnHeatedFood",
+    "ReturnWashingSupplies",
+    "RinseBowls",
+    "RinseCuttingBoard",
+    "RinseSinkBasin",
+    "RotatePan",
+    "SanitizePrepCuttingBoard",
+    "ScalePortioning",
+    "ScrubBowl",
+    "ScrubCuttingBoard",
+    "SearingMeat",
+    "SeasoningSpiceSetup",
+    "SeasoningSteak",
+    "ServeSteak",
+    "ServeTea",
+    "ServeWarmCroissant",
+    "SetBowlsForSoup",
+    "SetUpCuttingStation",
+    "SetUpSpiceStation",
+    "SetupBowls",
+    "SetupButterPlate",
+    "SetupFruitBowl",
+    "SetupFrying",
+    "SetupSodaBowl",
+    "SetupWineGlasses",
+    "ShakePan",
+    "SimmeringSauce",
+    "SizeSorting",
+    "SnackSorting",
+    "SoakSponge",
+    "SortingCleanup",
+    "SpicyMarinade",
+    "StackBowlsCabinet",
+    "StackBowlsInSink",
+    "StackCans",
+    "StartElectricKettle",
+    "SteamInMicrowave",
+    "StirVegetables",
+    "StockingBreakfastFoods",
+    "StoreDumplings",
+    "StoreLeftoversByType",
+    "StoreLeftoversInBowl",
+    "StrainerSetup",
+    "SweetSavoryToastSetup",
+    "SweetenCoffee",
+    "SweetenHotChocolate",
+    "ThawInSink",
+    "TiltPan",
+    "ToastBagel",
+    "ToastBaguette",
+    "ToastOnCorrectRack",
+    "TongBuffetSetup",
+    "TransportCookware",
+    "TurnOffSimmeredSauceHeat",
+    "VeggieDipPrep",
+    "WarmCroissant",
+    "WashFish",
+    "WashLettuce",
+    "YogurtDelightPrep"
+  ],
+  "target_splits": {
+    "atomic_seen": [
+      "CloseBlenderLid",
+      "CloseFridge",
+      "CloseToasterOvenDoor",
+      "CoffeeSetupMug",
+      "NavigateKitchen",
+      "OpenCabinet",
+      "OpenDrawer",
+      "OpenStandMixerHead",
+      "PickPlaceCounterToCabinet",
+      "PickPlaceCounterToStove",
+      "PickPlaceDrawerToCounter",
+      "PickPlaceSinkToCounter",
+      "PickPlaceToasterToCounter",
+      "SlideDishwasherRack",
+      "TurnOffStove",
+      "TurnOnElectricKettle",
+      "TurnOnMicrowave",
+      "TurnOnSinkFaucet"
+    ],
+    "composite_seen": [
+      "DeliverStraw",
+      "GetToastedBread",
+      "KettleBoiling",
+      "LoadDishwasher",
+      "PackIdenticalLunches",
+      "PreSoakPan",
+      "PrepareCoffee",
+      "RinseSinkBasin",
+      "ScrubCuttingBoard",
+      "SearingMeat",
+      "SetUpCuttingStation",
+      "StackBowlsCabinet",
+      "SteamInMicrowave",
+      "StirVegetables",
+      "StoreLeftoversInBowl",
+      "WashLettuce"
+    ],
+    "composite_unseen": [
+      "ArrangeBreadBasket",
+      "ArrangeTea",
+      "BreadSelection",
+      "CategorizeCondiments",
+      "CuttingToolSelection",
+      "GarnishPancake",
+      "GatherTableware",
+      "HeatKebabSandwich",
+      "MakeIceLemonade",
+      "PanTransfer",
+      "PortionHotDogs",
+      "RecycleBottlesByType",
+      "SeparateFreezerRack",
+      "WaffleReheat",
+      "WashFruitColander",
+      "WeighIngredients"
+    ]
+  },
+  "tasks": {
+    "AddIceCubes": {
+      "horizon": 1650
+    },
+    "AddLemonToFish": {
+      "horizon": 2100
+    },
+    "AddMarshmallow": {
+      "horizon": 1200
+    },
+    "AddSugarCubes": {
+      "horizon": 900
+    },
+    "AddSweetener": {
+      "horizon": 1200
+    },
+    "AdjustHeat": {
+      "horizon": 2250
+    },
+    "AdjustToasterOvenTemperature": {
+      "horizon": 450
+    },
+    "AdjustWaterTemperature": {
+      "horizon": 450
+    },
+    "AfterwashSorting": {
+      "horizon": 3000
+    },
+    "AirDryFruit": {
+      "horizon": 2850
+    },
+    "AlcoholServingPrep": {
+      "horizon": 4650
+    },
+    "AlignSilverware": {
+      "horizon": 2550
+    },
+    "ArrangeBreadBasket": {
+      "horizon": 4350,
+      "target_dataset": "v1.0/target/composite/ArrangeBreadBasket/20250809/lerobot"
+    },
+    "ArrangeBreadBowl": {
+      "horizon": 1350
+    },
+    "ArrangeBuffetDessert": {
+      "horizon": 4050
+    },
+    "ArrangeDrinkware": {
+      "horizon": 1650
+    },
+    "ArrangeTea": {
+      "horizon": 2250,
+      "target_dataset": "v1.0/target/composite/ArrangeTea/20250812/lerobot"
+    },
+    "ArrangeTeaAccompaniments": {
+      "horizon": 1650
+    },
+    "ArrangeUtensilsByType": {
+      "horizon": 5100
+    },
+    "ArrangeVegetables": {
+      "horizon": 1650
+    },
+    "AssembleCookingArray": {
+      "horizon": 3300
+    },
+    "BalancedMealPrep": {
+      "horizon": 1500
+    },
+    "BeverageOrganization": {
+      "horizon": 4500
+    },
+    "BeverageSorting": {
+      "horizon": 5250
+    },
+    "BlendIngredients": {
+      "horizon": 1800
+    },
+    "BlendMarinade": {
+      "horizon": 3000
+    },
+    "BowlAndCup": {
+      "horizon": 2400
+    },
+    "BreadAndCheese": {
+      "horizon": 900
+    },
+    "BreadSelection": {
+      "horizon": 1950,
+      "target_dataset": "v1.0/target/composite/BreadSelection/20250815/lerobot"
+    },
+    "BreadSetupSlicing": {
+      "horizon": 1200
+    },
+    "BuildAppetizerPlate": {
+      "horizon": 4050
+    },
+    "ButterOnPan": {
+      "horizon": 1350
+    },
+    "CandleCleanup": {
+      "horizon": 4500
+    },
+    "CategorizeCondiments": {
+      "horizon": 1650,
+      "target_dataset": "v1.0/target/composite/CategorizeCondiments/20250814/lerobot"
+    },
+    "CerealAndBowl": {
+      "horizon": 4350
+    },
+    "CheesyBread": {
+      "horizon": 750
+    },
+    "ChooseMeasuringCup": {
+      "horizon": 1800
+    },
+    "ChooseRipeFruit": {
+      "horizon": 900
+    },
+    "CleanBoard": {
+      "horizon": 4800
+    },
+    "CleanMicrowave": {
+      "horizon": 2100
+    },
+    "ClearClutter": {
+      "horizon": 3300
+    },
+    "ClearCuttingBoard": {
+      "horizon": 1800
+    },
+    "ClearFoodWaste": {
+      "horizon": 1650
+    },
+    "ClearFreezer": {
+      "horizon": 3600
+    },
+    "ClearReceptaclesForCleaning": {
+      "horizon": 3900
+    },
+    "ClearSink": {
+      "horizon": 4950
+    },
+    "ClearSinkArea": {
+      "horizon": 3300
+    },
+    "ClearSinkSpace": {
+      "horizon": 1800
+    },
+    "CloseBlenderLid": {
+      "horizon": 900,
+      "target_dataset": "v1.0/target/atomic/CloseBlenderLid/20250822/lerobot"
+    },
+    "CloseCabinet": {
+      "horizon": 750
+    },
+    "CloseDishwasher": {
+      "horizon": 300
+    },
+    "CloseDrawer": {
+      "horizon": 450
+    },
+    "CloseElectricKettleLid": {
+      "horizon": 300
+    },
+    "CloseFridge": {
+      "horizon": 900,
+      "target_dataset": "v1.0/target/atomic/CloseFridge/20250816/lerobot"
+    },
+    "CloseFridgeDrawer": {
+      "horizon": 450
+    },
+    "CloseMicrowave": {
+      "horizon": 450
+    },
+    "CloseOven": {
+      "horizon": 450
+    },
+    "CloseStandMixerHead": {
+      "horizon": 450
+    },
+    "CloseToasterOvenDoor": {
+      "horizon": 450,
+      "target_dataset": "v1.0/target/atomic/CloseToasterOvenDoor/20250818/lerobot"
+    },
+    "CoffeeServeMug": {
+      "horizon": 450
+    },
+    "CoffeeSetupMug": {
+      "horizon": 600,
+      "target_dataset": "v1.0/target/atomic/CoffeeSetupMug/20250813/lerobot"
+    },
+    "CollectWashingSupplies": {
+      "horizon": 2700
+    },
+    "ColorfulSalsa": {
+      "horizon": 2400
+    },
+    "CondimentCollection": {
+      "horizon": 2100
+    },
+    "CookieDoughPrep": {
+      "horizon": 2850
+    },
+    "CoolBakedCake": {
+      "horizon": 3600
+    },
+    "CoolKettle": {
+      "horizon": 2400
+    },
+    "CreateChildFriendlyFridge": {
+      "horizon": 3300
+    },
+    "CupcakeCleanup": {
+      "horizon": 1050
+    },
+    "CutBuffetPizza": {
+      "horizon": 1950
+    },
+    "CuttingToolSelection": {
+      "horizon": 1200,
+      "target_dataset": "v1.0/target/composite/CuttingToolSelection/20250814/lerobot"
+    },
+    "DateNight": {
+      "horizon": 4800
+    },
+    "DefrostByCategory": {
+      "horizon": 3300
+    },
+    "DeliverBrewedCoffee": {
+      "horizon": 1050
+    },
+    "DeliverStraw": {
+      "horizon": 2550,
+      "target_dataset": "v1.0/target/composite/DeliverStraw/20250813/lerobot"
+    },
+    "DessertAssembly": {
+      "horizon": 1350
+    },
+    "DessertUpgrade": {
+      "horizon": 1200
+    },
+    "DisplayMeatVariety": {
+      "horizon": 4350
+    },
+    "DistributeChicken": {
+      "horizon": 2400
+    },
+    "DivideBasins": {
+      "horizon": 2100
+    },
+    "DivideBuffetTrays": {
+      "horizon": 7200
+    },
+    "DrainVeggies": {
+      "horizon": 2400
+    },
+    "DrinkwareConsolidation": {
+      "horizon": 3600
+    },
+    "DryDishes": {
+      "horizon": 1650
+    },
+    "DryDrinkware": {
+      "horizon": 1350
+    },
+    "DumpLeftovers": {
+      "horizon": 900
+    },
+    "FillBlenderJug": {
+      "horizon": 1500
+    },
+    "FillKettle": {
+      "horizon": 3300
+    },
+    "FilterMicrowavableItem": {
+      "horizon": 1650
+    },
+    "FoodCleanup": {
+      "horizon": 1200
+    },
+    "FreezeBottledWaters": {
+      "horizon": 3900
+    },
+    "FreezeCookedFood": {
+      "horizon": 1950
+    },
+    "FreezeIceTray": {
+      "horizon": 2400
+    },
+    "FreshProduceOrganization": {
+      "horizon": 1500
+    },
+    "FryingPanAdjustment": {
+      "horizon": 1200
+    },
+    "GarnishCupcake": {
+      "horizon": 1800
+    },
+    "GarnishPancake": {
+      "horizon": 2700,
+      "target_dataset": "v1.0/target/composite/GarnishPancake/20250815/lerobot"
+    },
+    "GatherCuttingTools": {
+      "horizon": 2400
+    },
+    "GatherMarinadeIngredients": {
+      "horizon": 3300
+    },
+    "GatherTableware": {
+      "horizon": 2250,
+      "target_dataset": "v1.0/target/composite/GatherTableware/20250815/lerobot"
+    },
+    "GatherVegetables": {
+      "horizon": 1350
+    },
+    "GetToastedBread": {
+      "horizon": 3000,
+      "target_dataset": "v1.0/target/composite/GetToastedBread/20250812/lerobot"
+    },
+    "HeatKebabSandwich": {
+      "horizon": 2700,
+      "target_dataset": "v1.0/target/composite/HeatKebabSandwich/20250813/lerobot"
+    },
+    "HeatMug": {
+      "horizon": 1800
+    },
+    "HeatMultipleWater": {
+      "horizon": 4200
+    },
+    "HotDogSetup": {
+      "horizon": 4200
+    },
+    "JuiceFruitReamer": {
+      "horizon": 600
+    },
+    "KettleBoiling": {
+      "horizon": 1500,
+      "target_dataset": "v1.0/target/composite/KettleBoiling/20250814/lerobot"
+    },
+    "LemonSeasoningFish": {
+      "horizon": 2250
+    },
+    "LineUpCondiments": {
+      "horizon": 3000
+    },
+    "LoadCondimentsInFridge": {
+      "horizon": 3000
+    },
+    "LoadDishwasher": {
+      "horizon": 1800,
+      "target_dataset": "v1.0/target/composite/LoadDishwasher/20250811/lerobot"
+    },
+    "LoadFridgeByType": {
+      "horizon": 1500
+    },
+    "LoadFridgeFifo": {
+      "horizon": 1500
+    },
+    "LoadPreparedFood": {
+      "horizon": 1500
+    },
+    "LowerHeat": {
+      "horizon": 750
+    },
+    "MakeFruitBowl": {
+      "horizon": 3450
+    },
+    "MakeIceLemonade": {
+      "horizon": 3000,
+      "target_dataset": "v1.0/target/composite/MakeIceLemonade/20250813/lerobot"
+    },
+    "MakeIcedCoffee": {
+      "horizon": 750
+    },
+    "MakeLoadedPotato": {
+      "horizon": 3000
+    },
+    "MatchCupAndDrink": {
+      "horizon": 3750
+    },
+    "MaximizeFreezerSpace": {
+      "horizon": 1650
+    },
+    "MealPrepStaging": {
+      "horizon": 3000
+    },
+    "MeatSkewerAssembly": {
+      "horizon": 1200
+    },
+    "MeatTransfer": {
+      "horizon": 3450
+    },
+    "MicrowaveCorrectMeal": {
+      "horizon": 1500
+    },
+    "MicrowaveDefrostMeat": {
+      "horizon": 1800
+    },
+    "MicrowaveThawing": {
+      "horizon": 4650
+    },
+    "MicrowaveThawingFridge": {
+      "horizon": 2700
+    },
+    "MixCakeFrosting": {
+      "horizon": 2550
+    },
+    "MixedFruitPlatter": {
+      "horizon": 2550
+    },
+    "MoveFreezerToFridge": {
+      "horizon": 1500
+    },
+    "MoveFridgeToFreezer": {
+      "horizon": 1650
+    },
+    "MoveToCounter": {
+      "horizon": 1200
+    },
+    "MoveToFreezerDrawer": {
+      "horizon": 1800
+    },
+    "MultistepSteaming": {
+      "horizon": 3450
+    },
+    "NavigateKitchen": {
+      "horizon": 450,
+      "target_dataset": "v1.0/target/atomic/NavigateKitchen/20250821/lerobot"
+    },
+    "OpenBlenderLid": {
+      "horizon": 450
+    },
+    "OpenCabinet": {
+      "horizon": 1050,
+      "target_dataset": "v1.0/target/atomic/OpenCabinet/20250813/lerobot"
+    },
+    "OpenDishwasher": {
+      "horizon": 450
+    },
+    "OpenDrawer": {
+      "horizon": 750,
+      "target_dataset": "v1.0/target/atomic/OpenDrawer/20250816/lerobot"
+    },
+    "OpenElectricKettleLid": {
+      "horizon": 300
+    },
+    "OpenFridge": {
+      "horizon": 900
+    },
+    "OpenFridgeDrawer": {
+      "horizon": 450
+    },
+    "OpenMicrowave": {
+      "horizon": 600
+    },
+    "OpenOven": {
+      "horizon": 300
+    },
+    "OpenStandMixerHead": {
+      "horizon": 450,
+      "target_dataset": "v1.0/target/atomic/OpenStandMixerHead/20250818/lerobot"
+    },
+    "OpenToasterOvenDoor": {
+      "horizon": 450
+    },
+    "OrganizeBakingIngredients": {
+      "horizon": 2400
+    },
+    "OrganizeCleaningSupplies": {
+      "horizon": 4050
+    },
+    "OrganizeCoffeeCondiments": {
+      "horizon": 1950
+    },
+    "OrganizeCondiments": {
+      "horizon": 2250
+    },
+    "OrganizeMetallicUtensils": {
+      "horizon": 3150
+    },
+    "OrganizeMugsByHandle": {
+      "horizon": 1350
+    },
+    "OrganizeVegetables": {
+      "horizon": 900
+    },
+    "OvenBroilFish": {
+      "horizon": 1500
+    },
+    "PackDessert": {
+      "horizon": 600
+    },
+    "PackFoodByTemp": {
+      "horizon": 4950
+    },
+    "PackFruitContainer": {
+      "horizon": 1950
+    },
+    "PackIdenticalLunches": {
+      "horizon": 3900,
+      "target_dataset": "v1.0/target/composite/PackIdenticalLunches/20250815/lerobot"
+    },
+    "PanTransfer": {
+      "horizon": 1800,
+      "target_dataset": "v1.0/target/composite/PanTransfer/20250817/lerobot"
+    },
+    "PastryDisplay": {
+      "horizon": 1050
+    },
+    "PickPlaceCabinetToCounter": {
+      "horizon": 450
+    },
+    "PickPlaceCounterToBlender": {
+      "horizon": 750
+    },
+    "PickPlaceCounterToCabinet": {
+      "horizon": 750,
+      "target_dataset": "v1.0/target/atomic/PickPlaceCounterToCabinet/20250811/lerobot"
+    },
+    "PickPlaceCounterToDrawer": {
+      "horizon": 750
+    },
+    "PickPlaceCounterToMicrowave": {
+      "horizon": 1050
+    },
+    "PickPlaceCounterToOven": {
+      "horizon": 600
+    },
+    "PickPlaceCounterToSink": {
+      "horizon": 600
+    },
+    "PickPlaceCounterToStandMixer": {
+      "horizon": 600
+    },
+    "PickPlaceCounterToStove": {
+      "horizon": 600,
+      "target_dataset": "v1.0/target/atomic/PickPlaceCounterToStove/20250818/lerobot"
+    },
+    "PickPlaceCounterToToasterOven": {
+      "horizon": 450
+    },
+    "PickPlaceDrawerToCounter": {
+      "horizon": 750,
+      "target_dataset": "v1.0/target/atomic/PickPlaceDrawerToCounter/20250820/lerobot"
+    },
+    "PickPlaceFridgeDrawerToShelf": {
+      "horizon": 600
+    },
+    "PickPlaceFridgeShelfToDrawer": {
+      "horizon": 600
+    },
+    "PickPlaceMicrowaveToCounter": {
+      "horizon": 750
+    },
+    "PickPlaceSinkToCounter": {
+      "horizon": 900,
+      "target_dataset": "v1.0/target/atomic/PickPlaceSinkToCounter/20250813/lerobot"
+    },
+    "PickPlaceStoveToCounter": {
+      "horizon": 450
+    },
+    "PickPlaceToasterOvenToCounter": {
+      "horizon": 450
+    },
+    "PickPlaceToasterToCounter": {
+      "horizon": 600,
+      "target_dataset": "v1.0/target/atomic/PickPlaceToasterToCounter/20250817/lerobot"
+    },
+    "PlaceBeveragesTogether": {
+      "horizon": 3900
+    },
+    "PlaceDishesBySink": {
+      "horizon": 2400
+    },
+    "PlaceEqualIceCubes": {
+      "horizon": 2850
+    },
+    "PlaceFoodInBowls": {
+      "horizon": 2550
+    },
+    "PlaceIceInCup": {
+      "horizon": 1200
+    },
+    "PlaceMeatInMarinade": {
+      "horizon": 3300
+    },
+    "PlaceMicrowaveSafeItem": {
+      "horizon": 1350
+    },
+    "PlaceStraw": {
+      "horizon": 1350
+    },
+    "PlaceVegetablesEvenly": {
+      "horizon": 1500
+    },
+    "PlaceVeggiesInDrawer": {
+      "horizon": 1950
+    },
+    "PlateSteakMeal": {
+      "horizon": 1050
+    },
+    "PlateStoreDinner": {
+      "horizon": 3900
+    },
+    "PortionFruitBowl": {
+      "horizon": 2100
+    },
+    "PortionHotDogs": {
+      "horizon": 2250,
+      "target_dataset": "v1.0/target/composite/PortionHotDogs/20250816/lerobot"
+    },
+    "PortionInTupperware": {
+      "horizon": 1950
+    },
+    "PortionOnSize": {
+      "horizon": 2700
+    },
+    "PortionYogurt": {
+      "horizon": 2100
+    },
+    "PreRinseStation": {
+      "horizon": 2250
+    },
+    "PreSoakPan": {
+      "horizon": 2400,
+      "target_dataset": "v1.0/target/composite/PreSoakPan/20250809/lerobot"
+    },
+    "PreheatOven": {
+      "horizon": 450
+    },
+    "PreheatPot": {
+      "horizon": 2700
+    },
+    "PrepForSanitizing": {
+      "horizon": 3750
+    },
+    "PrepForTenderizing": {
+      "horizon": 2400
+    },
+    "PrepFridgeForCleaning": {
+      "horizon": 3600
+    },
+    "PrepMarinatingMeat": {
+      "horizon": 2850
+    },
+    "PrepSinkForCleaning": {
+      "horizon": 1800
+    },
+    "PrepareBroilingStation": {
+      "horizon": 900
+    },
+    "PrepareCheeseStation": {
+      "horizon": 2400
+    },
+    "PrepareCocktailStation": {
+      "horizon": 5250
+    },
+    "PrepareCoffee": {
+      "horizon": 1800,
+      "target_dataset": "v1.0/target/composite/PrepareCoffee/20250812/lerobot"
+    },
+    "PrepareDishwasher": {
+      "horizon": 1350
+    },
+    "PrepareDrinkStation": {
+      "horizon": 5850
+    },
+    "PrepareSausageCheese": {
+      "horizon": 3600
+    },
+    "PrepareSmoothie": {
+      "horizon": 1800
+    },
+    "PrepareSoupServing": {
+      "horizon": 3450
+    },
+    "PrepareStoringLeftovers": {
+      "horizon": 2400
+    },
+    "PrepareToast": {
+      "horizon": 3750
+    },
+    "PressChicken": {
+      "horizon": 1500
+    },
+    "PrewashFoodAssembly": {
+      "horizon": 1650
+    },
+    "PrewashFoodSorting": {
+      "horizon": 3600
+    },
+    "QuickThaw": {
+      "horizon": 1650
+    },
+    "RearrangeFridgeItems": {
+      "horizon": 2400
+    },
+    "RecycleBottlesBySize": {
+      "horizon": 3750
+    },
+    "RecycleBottlesByType": {
+      "horizon": 2850,
+      "target_dataset": "v1.0/target/composite/RecycleBottlesByType/20250812/lerobot"
+    },
+    "RecycleSodaCans": {
+      "horizon": 6750
+    },
+    "RecycleStackedYogurt": {
+      "horizon": 2100
+    },
+    "RefillCondimentStation": {
+      "horizon": 1950
+    },
+    "ReheatMeal": {
+      "horizon": 1800
+    },
+    "RemoveBroiledFish": {
+      "horizon": 2100
+    },
+    "RemoveCuttingBoardItems": {
+      "horizon": 750
+    },
+    "ReorganizeFrozenVegetables": {
+      "horizon": 2700
+    },
+    "ResetCabinetDoors": {
+      "horizon": 3300
+    },
+    "RestockBowls": {
+      "horizon": 3600
+    },
+    "RestockCannedFood": {
+      "horizon": 1050
+    },
+    "RestockPantry": {
+      "horizon": 2550
+    },
+    "RestockSinkSupplies": {
+      "horizon": 2250
+    },
+    "RetrieveIceTray": {
+      "horizon": 2550
+    },
+    "RetrieveMeat": {
+      "horizon": 1050
+    },
+    "ReturnHeatedFood": {
+      "horizon": 1350
+    },
+    "ReturnWashingSupplies": {
+      "horizon": 5100
+    },
+    "RinseBowls": {
+      "horizon": 2850
+    },
+    "RinseCuttingBoard": {
+      "horizon": 2250
+    },
+    "RinseSinkBasin": {
+      "horizon": 1350,
+      "target_dataset": "v1.0/target/composite/RinseSinkBasin/20250816/lerobot"
+    },
+    "RotatePan": {
+      "horizon": 600
+    },
+    "SanitizePrepCuttingBoard": {
+      "horizon": 2100
+    },
+    "ScalePortioning": {
+      "horizon": 2100
+    },
+    "ScrubBowl": {
+      "horizon": 1350
+    },
+    "ScrubCuttingBoard": {
+      "horizon": 1200,
+      "target_dataset": "v1.0/target/composite/ScrubCuttingBoard/20250816/lerobot"
+    },
+    "SearingMeat": {
+      "horizon": 4350,
+      "target_dataset": "v1.0/target/composite/SearingMeat/20250812/lerobot"
+    },
+    "SeasoningSpiceSetup": {
+      "horizon": 4200
+    },
+    "SeasoningSteak": {
+      "horizon": 1350
+    },
+    "SeparateFreezerRack": {
+      "horizon": 2400,
+      "target_dataset": "v1.0/target/composite/SeparateFreezerRack/20250815/lerobot"
+    },
+    "ServeSteak": {
+      "horizon": 2100
+    },
+    "ServeTea": {
+      "horizon": 1350
+    },
+    "ServeWarmCroissant": {
+      "horizon": 1800
+    },
+    "SetBowlsForSoup": {
+      "horizon": 5400
+    },
+    "SetUpCuttingStation": {
+      "horizon": 2400,
+      "target_dataset": "v1.0/target/composite/SetUpCuttingStation/20250817/lerobot"
+    },
+    "SetUpSpiceStation": {
+      "horizon": 4050
+    },
+    "SetupBowls": {
+      "horizon": 2700
+    },
+    "SetupButterPlate": {
+      "horizon": 4050
+    },
+    "SetupFruitBowl": {
+      "horizon": 3750
+    },
+    "SetupFrying": {
+      "horizon": 3150
+    },
+    "SetupSodaBowl": {
+      "horizon": 3600
+    },
+    "SetupWineGlasses": {
+      "horizon": 3150
+    },
+    "ShakePan": {
+      "horizon": 600
+    },
+    "SimmeringSauce": {
+      "horizon": 3450
+    },
+    "SizeSorting": {
+      "horizon": 1500
+    },
+    "SlideDishwasherRack": {
+      "horizon": 450,
+      "target_dataset": "v1.0/target/atomic/SlideDishwasherRack/20250820/lerobot"
+    },
+    "SlideOvenRack": {
+      "horizon": 450
+    },
+    "SlideToasterOvenRack": {
+      "horizon": 300
+    },
+    "SnackSorting": {
+      "horizon": 1950
+    },
+    "SoakSponge": {
+      "horizon": 2550
+    },
+    "SortingCleanup": {
+      "horizon": 3000
+    },
+    "SpicyMarinade": {
+      "horizon": 5400
+    },
+    "StackBowlsCabinet": {
+      "horizon": 2100,
+      "target_dataset": "v1.0/target/composite/StackBowlsCabinet/20250815/lerobot"
+    },
+    "StackBowlsInSink": {
+      "horizon": 1350
+    },
+    "StackCans": {
+      "horizon": 1800
+    },
+    "StartCoffeeMachine": {
+      "horizon": 300
+    },
+    "StartElectricKettle": {
+      "horizon": 1050
+    },
+    "SteamInMicrowave": {
+      "horizon": 2100,
+      "target_dataset": "v1.0/target/composite/SteamInMicrowave/20250814/lerobot"
+    },
+    "StirVegetables": {
+      "horizon": 2400,
+      "target_dataset": "v1.0/target/composite/StirVegetables/20250814/lerobot"
+    },
+    "StockingBreakfastFoods": {
+      "horizon": 2400
+    },
+    "StoreDumplings": {
+      "horizon": 3750
+    },
+    "StoreLeftoversByType": {
+      "horizon": 2550
+    },
+    "StoreLeftoversInBowl": {
+      "horizon": 2550,
+      "target_dataset": "v1.0/target/composite/StoreLeftoversInBowl/20250813/lerobot"
+    },
+    "StrainerSetup": {
+      "horizon": 2250
+    },
+    "SweetSavoryToastSetup": {
+      "horizon": 4050
+    },
+    "SweetenCoffee": {
+      "horizon": 1950
+    },
+    "SweetenHotChocolate": {
+      "horizon": 2100
+    },
+    "ThawInSink": {
+      "horizon": 1500
+    },
+    "TiltPan": {
+      "horizon": 600
+    },
+    "ToastBagel": {
+      "horizon": 2250
+    },
+    "ToastBaguette": {
+      "horizon": 3900
+    },
+    "ToastOnCorrectRack": {
+      "horizon": 3900
+    },
+    "TongBuffetSetup": {
+      "horizon": 2400
+    },
+    "TransportCookware": {
+      "horizon": 2850
+    },
+    "TurnOffMicrowave": {
+      "horizon": 300
+    },
+    "TurnOffSimmeredSauceHeat": {
+      "horizon": 1500
+    },
+    "TurnOffSinkFaucet": {
+      "horizon": 300
+    },
+    "TurnOffStove": {
+      "horizon": 750,
+      "target_dataset": "v1.0/target/atomic/TurnOffStove/20250812/lerobot"
+    },
+    "TurnOnBlender": {
+      "horizon": 300
+    },
+    "TurnOnElectricKettle": {
+      "horizon": 450,
+      "target_dataset": "v1.0/target/atomic/TurnOnElectricKettle/20250817/lerobot"
+    },
+    "TurnOnMicrowave": {
+      "horizon": 450,
+      "target_dataset": "v1.0/target/atomic/TurnOnMicrowave/20250813/lerobot"
+    },
+    "TurnOnSinkFaucet": {
+      "horizon": 600,
+      "target_dataset": "v1.0/target/atomic/TurnOnSinkFaucet/20250812/lerobot"
+    },
+    "TurnOnStove": {
+      "horizon": 450
+    },
+    "TurnOnToaster": {
+      "horizon": 300
+    },
+    "TurnOnToasterOven": {
+      "horizon": 450
+    },
+    "TurnSinkSpout": {
+      "horizon": 300
+    },
+    "VeggieDipPrep": {
+      "horizon": 3150
+    },
+    "WaffleReheat": {
+      "horizon": 4050,
+      "target_dataset": "v1.0/target/composite/WaffleReheat/20250817/lerobot"
+    },
+    "WarmCroissant": {
+      "horizon": 1650
+    },
+    "WashFish": {
+      "horizon": 1350
+    },
+    "WashFruitColander": {
+      "horizon": 3150,
+      "target_dataset": "v1.0/target/composite/WashFruitColander/20250811/lerobot"
+    },
+    "WashLettuce": {
+      "horizon": 1650,
+      "target_dataset": "v1.0/target/composite/WashLettuce/20250814/lerobot"
+    },
+    "WeighIngredients": {
+      "horizon": 3000,
+      "target_dataset": "v1.0/target/composite/WeighIngredients/20250812/lerobot"
+    },
+    "YogurtDelightPrep": {
+      "horizon": 2250
+    }
+  }
+}

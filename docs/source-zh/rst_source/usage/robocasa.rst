@@ -12,6 +12,9 @@ RoboCasa
    公开的 Target50 协议固定在 ``robots/robocasa/eval/target50.json`` 中。
    340 个 cell 均使用普通的单任务 ``rpent --robot robocasa`` 命令。
 
+   使用 Qwen 视觉 planner 的 Human300 → Target50 π0.5 适应实验参见
+   :doc:`robocasa_retention`。该实验有独立的训练、配对评测、空记忆控制和依赖配置。
+
 运行流程
 --------
 

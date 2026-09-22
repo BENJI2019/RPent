@@ -49,12 +49,13 @@ class RoboCasaVLAClient(BaseVLAClient):
             timeout_s=self._TIMEOUT_S["predict"],
         )
 
-    def reset_session(self) -> dict:
+    def reset_session(self, *, seed: int | None = None) -> dict:
         """Reset RLDX internal state (memory/RTC) for this client's session.
 
         The session stays live for subsequent calls.
         """
         return self._client.call(
             "vla.reset_session",
+            **({"kwargs": {"seed": seed}} if seed is not None else {}),
             timeout_s=self._TIMEOUT_S["default"],
         )

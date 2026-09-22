@@ -1,0 +1,43 @@
+---
+description: 产物、环境、个人任务目录约定：algorithm 只放代码，输出走 model/xiaoyi_tmpstorage，个人算法代码放 hyy_vla/robocasa_cl
+alwaysApply: true
+---
+
+# 目录约定
+
+当前盘对应关系：
+
+- `algorithm/` → `/home/ma-user/work/algorithm`（集群 `/opt/huawei/schedule-train/algorithm`）
+- `dataset/` → `/home/ma-user/work/dataset`（集群 `/opt/huawei/dataset`）
+- `model/` → `/home/ma-user/work/model`（集群 `/opt/huawei/quoteModel`）
+
+## 放哪里
+
+- **代码**：只写在当前 `algorithm` 仓库里。保持精简，不往这里堆评测结果、日志、缓存、环境、打包数据。
+- **本用户任务产物**：一律放在 `model/xiaoyi_tmpstorage/llb/` 下（看板、jsonl、转换结果、实验输出、本地可视化包等）。
+- **其它输出**（评测 work_dir、HF 合并权重、vLLM cache）：放在 `model/xiaoyi_tmpstorage/`，不要写到 `algorithm/`。
+- **环境 / 公共包**：放 `dataset/Common_wl` 或 `model/xiaoyi_tmpstorage/`，不要装进 `algorithm/`。
+
+## 禁止
+
+```text
+❌ algorithm/**/results、logs、eval_tmp、*.jsonl 大批量结果
+❌ 在 algorithm/ 建 conda/venv、下载模型权重
+❌ 把看板、转换结果写到 dataset/ 或 algorithm/
+
+✅ model/xiaoyi_tmpstorage/hyy_files/robocasa365/lifelong_outputs/<实验名>/
+✅ 脚本默认 WORK_DIR / EXP_DIR / OUT 指向上述路径
+```
+
+## 示例
+
+```text
+# 0829 推理结果
+model/xiaoyi_tmpstorage/hyy_files/robocasa365/lifelong_outputs/<exp>/YYYYMMDD_HHMMSS/<test_id>.json
+
+# 转换 jsonl、对比看板
+model/xiaoyi_tmpstorage/hyy_files/robocasa365/lifelong_outputs/compare_0829_board.ipynb
+model/xiaoyi_tmpstorage/hyy_files/robocasa365/lifelong_outputs/<exp>/0829能力测试集-自动测评_result.jsonl
+```
+
+启动脚本、转换脚本若需要写文件，默认路径用 `hyy_vla`，可用环境变量覆盖，不要改成写进 `algorithm/`。

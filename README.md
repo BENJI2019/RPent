@@ -127,6 +127,15 @@ pip install -e ".[robotwin]"    # RoboTwin
 For RoboCasa setup, task memory, and the Target50 protocol, see the
 [RoboCasa guide](https://rpent.readthedocs.io/en/latest/rst_source/usage/robocasa.html).
 
+For staged π0.5 Human300 → Target50 adaptation (pilots, joint50, independent50)
+and retention measurements with Qwen
+vision planners, see the experimental guide in
+[English](docs/source-en/rst_source/usage/robocasa_retention.rst) or
+[中文](docs/source-zh/rst_source/usage/robocasa_retention.rst).
+For the A800 environment, downloads and first training run, use the
+[setup walkthrough](docs/source-en/rst_source/usage/robocasa_retention_setup.rst)
+([中文步骤](docs/source-zh/rst_source/usage/robocasa_retention_setup.rst)).
+
 The example below continues with LIBERO-PRO.
 
 **2. Download the LIBERO-PRO simulator assets.**

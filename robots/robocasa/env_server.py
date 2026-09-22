@@ -15,8 +15,10 @@
 """RoboCasa env server — hosts the raw robosuite env in a subprocess, exposes basic calls via RPC."""
 
 import argparse
+import hashlib
 import inspect
 import os
+import random
 import re
 import sys
 
@@ -86,8 +88,18 @@ class RoboCasaEnvFacade(MainThreadServeMixin, BaseEnvFacade):
         camera_w=256,
         cameras=None,
         use_camera_obs=False,
+        max_steps=None,
     ):
         super().__init__()
+        if max_steps is not None and (type(max_steps) is not int or max_steps < 1):
+            raise ValueError("max_steps must be a positive integer")
+        self.max_steps = max_steps
+        self._episode_steps = 0
+        self._reset_count = 0
+        self._initial_state_sha256 = None
+        if max_steps is not None:
+            random.seed(seed)
+            np.random.seed(seed)
         import robocasa  # noqa: F401 — registers robocasa envs
         import robosuite
         from robosuite.controllers import load_composite_controller_config
@@ -135,6 +147,7 @@ class RoboCasaEnvFacade(MainThreadServeMixin, BaseEnvFacade):
         self._rpc["env.reassemble_env_action"] = self.reassemble_env_action
         self._rpc["env.get_success_criteria_text"] = self.get_success_criteria_text
         self._rpc["env.get_task_progress"] = self.get_task_progress
+        self._rpc["env.get_episode_stats"] = self.get_episode_stats
         # Read-only methods
         self._readonly_methods.update(
             [
@@ -143,6 +156,7 @@ class RoboCasaEnvFacade(MainThreadServeMixin, BaseEnvFacade):
                 "env.grasp_contact",
                 "env.get_success_criteria_text",
                 "env.get_task_progress",
+                "env.get_episode_stats",
             ]
         )
 
@@ -151,6 +165,11 @@ class RoboCasaEnvFacade(MainThreadServeMixin, BaseEnvFacade):
 
     # ---- lifecycle ----
     def reset(self):
+        if self.max_steps is not None:
+            if self._reset_count:
+                raise RuntimeError("evaluation episode cannot be reset again")
+            random.seed(self.seed)
+            np.random.seed(self.seed)
         # RLDX_RESET_SEED=<episode_seed> -> reproduce the EXACT scene the fullshot eval
         # generated for that episode, seeded the SAME way as the eval's VideoRecordingWrapper
         # (random.seed + np.random.seed + robosuite env.rng/seed) BEFORE reset. Lets the
@@ -158,8 +177,6 @@ class RoboCasaEnvFacade(MainThreadServeMixin, BaseEnvFacade):
         # comparison). The eval formula: episode_seed = (run_seed + env_idx)*100000 + episode_id.
         rs_env = os.environ.get("RLDX_RESET_SEED")
         if rs_env:
-            import random
-
             sd = int(rs_env)
             random.seed(sd)
             np.random.seed(sd)
@@ -167,17 +184,35 @@ class RoboCasaEnvFacade(MainThreadServeMixin, BaseEnvFacade):
                 self.env.seed = sd
             if hasattr(self.env, "rng"):
                 self.env.rng = np.random.default_rng(sd)
-        return self.env.reset()
+        observation = self.env.reset()
+        self._reset_count += 1
+        self._episode_steps = 0
+        if self.max_steps is not None:
+            initial = np.asarray(self.env.sim.get_state().flatten(), dtype=np.float64)
+            self._initial_state_sha256 = hashlib.sha256(initial.tobytes()).hexdigest()
+        return observation
 
     def step(self, flat_action):
         """flat_action: np.ndarray[12] = [eef_pos(3), eef_rot(3), gripper(1),
         base_motion(4), control_mode(1)] in the PandaOmron composite layout."""
+        if self.max_steps is not None and self._episode_steps >= self.max_steps:
+            raise RuntimeError("evaluation step budget exhausted")
         a = np.asarray(flat_action, dtype=np.float64).reshape(-1)
         assert a.shape[0] == self.env.action_dim, (
             f"action dim {a.shape[0]} != env.action_dim {self.env.action_dim}"
         )
         obs, reward, done, info = self.env.step(a)
+        self._episode_steps += 1
         return obs, reward, done, info
+
+    def get_episode_stats(self):
+        """Return native execution counts for paired retention evaluation."""
+        return {
+            "steps": self._episode_steps,
+            "max_steps": self.max_steps,
+            "reset_count": self._reset_count,
+            "initial_state_sha256": self._initial_state_sha256,
+        }
 
     def check_success(self):
         return bool(self.env._check_success())
@@ -396,6 +431,7 @@ def main():
     p.add_argument("--task-name", default="OpenDrawer")
     p.add_argument("--split", default="target")
     p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--max-steps", type=int, default=None)
     args = p.parse_args()
 
     if args.cuda_device is not None:
@@ -430,6 +466,7 @@ def main():
         args.task_name,
         split=args.split,
         seed=args.seed,
+        max_steps=args.max_steps,
     )
     facade.serve(
         transport=args.transport,

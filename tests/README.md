@@ -68,6 +68,13 @@ pytest tests/unit_tests -v
 
 ## RoboCasa environment smoke tests
 
+The π0.5 retention preparation checks run offline in
+`tests/unit_tests/robots/robocasa/test_retention_setup_contracts.py`.
+They cover config creation, selected Target dataset downloads with a fake upstream,
+partial-download detection and readiness failures; they do not certify real GPU
+installation. See the [A800 setup walkthrough](../docs/source-en/rst_source/usage/robocasa_retention_setup.rst)
+for installation, runtime probes and the opt-in real policy test.
+
 The opt-in RoboCasa smoke suite verifies simulator installation and environment
 interfaces without loading a planner or VLA checkpoint. Install the RoboCasa
 extra and assets, then run:
@@ -89,6 +96,11 @@ or [Chinese](../docs/source-zh/rst_source/usage/robocasa.rst#environment-smoke-t
 for setup and test prerequisites.
 
 ## Embodied GPU E2E tests
+
+The opt-in π0.5 retention test uses separate simulator and benchmark OpenPI
+environments. See the [retention guide](../docs/source-en/rst_source/usage/robocasa_retention.rst)
+for prerequisites and `RPENT_RUN_PI05_INTEGRATION=1`. It is not part of the
+RLDX GPU runner. Its bounded policy-chain result is distinct from task success.
 
 The runner must expose one GPU and the checkpoint and simulator assets required
 by the selected target. Run one GPU suite with two new output paths:

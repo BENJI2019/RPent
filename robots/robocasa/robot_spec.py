@@ -30,7 +30,6 @@ from robots.robocasa.prompt_bundle import (
 )
 from rpent.dashboard.events import DashboardEventSink
 from rpent.dashboard.spec import DashboardSpec
-from rpent.memory import MemoryManager
 from rpent.robots.prompt_bundle import PromptBundle
 from rpent.robots.robot_spec import RobotSpec, RunConfig
 from rpent.robots.runtime import try_spawn_server, try_wait_server
@@ -162,6 +161,7 @@ def get_toolkit(
 ):
     """Return the RoboCasa toolkit for the current session."""
     from robots.robocasa.toolkit import RoboCasaToolkit
+    from rpent.memory import MemoryManager
 
     memory = MemoryManager(
         root=config.prompt_vars.get("memory_dir") or get_memory_dir("robocasa"),
@@ -205,8 +205,15 @@ def _add_cli_args(parser: argparse.ArgumentParser, use_dashboard: bool) -> None:
     parser.add_argument(
         "--vla-model-path",
         default=None,
-        help="RLDX checkpoint path for locally spawned vla_server",
+        help="Checkpoint path for the selected VLA backend",
     )
+    parser.add_argument("--vla-backend", choices=("rldx", "pi05"), default="rldx")
+    parser.add_argument(
+        "--vla-python", default=None, help="Python in the VLA environment"
+    )
+    parser.add_argument("--vla-method", choices=("full", "lora"), default="full")
+    parser.add_argument("--env-max-steps", type=int, default=None)
+    parser.add_argument("--no-task-memory", action="store_true")
     parser.add_argument(
         "--cuda-device",
         type=int,
@@ -235,6 +242,10 @@ def _parse_config(args: argparse.Namespace) -> RunConfig:
         "recipe_tag": recipe_tag,
         "memory_dir": str(memory_dir),
     }
+    if getattr(args, "no_task_memory", False):
+        prompt_vars["no_task_memory"] = True
+    if getattr(args, "vla_backend", "rldx") == "pi05":
+        prompt_vars["vla_backend"] = "pi05"
 
     output_dir = args.output_dir
     if output_dir is None:
@@ -284,6 +295,11 @@ def _spawn_env_server(
                 str(port),
                 "--parent-watch",
                 *(
+                    ["--max-steps", str(args.env_max_steps)]
+                    if getattr(args, "env_max_steps", None) is not None
+                    else []
+                ),
+                *(
                     ["--cuda-device", str(args.cuda_device)]
                     if args.cuda_device is not None
                     else []
@@ -321,10 +337,20 @@ def _spawn_vla_server(
         daemon = ProcessDaemon(
             name="vla_server",
             cmd=[
-                sys.executable,
-                str(get_repo_root() / "robots" / "robocasa" / "vla_server.py"),
+                getattr(args, "vla_python", None) or sys.executable,
+                "-m",
+                (
+                    "robots.robocasa.pi05_server"
+                    if getattr(args, "vla_backend", "rldx") == "pi05"
+                    else "robots.robocasa.vla_server"
+                ),
                 "--model-path",
                 args.vla_model_path,
+                *(
+                    ["--method", getattr(args, "vla_method", "full")]
+                    if getattr(args, "vla_backend", "rldx") == "pi05"
+                    else []
+                ),
                 "--transport",
                 "http",
                 "--host",
@@ -363,6 +389,15 @@ def _init_runtime(
         "env": lambda: _spawn_env_server(args, output_dir),
         "vla": lambda: _spawn_vla_server(args, output_dir),
     }
+
+    def connect_vla(rpc):
+        client = RoboCasaVLAClient(rpc)
+        if getattr(args, "vla_backend", "rldx") == "pi05":
+            if client.get_modality_config().get("backend") != "pi05":
+                raise ValueError("--vla-backend pi05 requires a RoboCasa pi05 server")
+            client.reset_session(seed=args.seed)
+        return {"vla_client": client}
+
     connectors = {
         "env": lambda rpc: {
             "env_client": RoboCasaEnvClient(
@@ -378,7 +413,7 @@ def _init_runtime(
             "workdir": str(output_dir),
             "hi_res": args.hi_res or None,
         },
-        "vla": lambda rpc: {"vla_client": RoboCasaVLAClient(rpc)},
+        "vla": connect_vla,
     }
     timeouts = {"env": 120.0, "vla": 300.0}
     selected = set(starters) if components is None else components

@@ -53,6 +53,10 @@ class RoboCasaEnvClient(BaseEnvClient):
     def _resolve_cam(self, name):
         return CAM_ALIAS.get(name, name)
 
+    def get_episode_stats(self) -> dict:
+        """Return simulator action counts and paired initialization evidence."""
+        return self._client.call("env.get_episode_stats")
+
     # ---- state accessors ----
     def reset(self):
         self.last_obs = self._client.call(

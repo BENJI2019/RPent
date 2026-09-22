@@ -53,6 +53,9 @@ Available extras:
      - LIBERO-plus + openpi Pi0.5 VLA + SAM 3.0 + RLinf runtime
    * - ``.[robocasa]``
      - RoboCasa365 simulator + the RLDX-1 VLA; see :doc:`usage/robocasa`
+   * - ``.[robocasa-pi05]``
+     - RoboCasa simulator and Harness for π0.5 retention experiments;
+       OpenPI and Qwen run separately. See :doc:`usage/robocasa_retention`
    * - ``.[robotwin]``
      - RoboTwin simulation and LingBot inference dependencies;
        see :doc:`usage/robotwin`

@@ -60,6 +60,9 @@ RPent 可以通过一条 ``pip install`` 命令完成安装，并提供多种可
      - LIBERO-plus + openpi Pi0.5 VLA + SAM 3.0 + RLinf 运行时
    * - ``.[robocasa]``
      - RoboCasa365 仿真器 + RLDX-1 VLA，详见 :doc:`usage/robocasa`
+   * - ``.[robocasa-pi05]``
+     - π0.5 能力保持实验使用的 RoboCasa 仿真器与 Harness；OpenPI、Qwen 使用独立环境，
+       详见 :doc:`usage/robocasa_retention`
    * - ``.[robotwin]``
      - RoboTwin 仿真环境和 LingBot 推理所需依赖，详见 :doc:`usage/robotwin`
    * - ``.[rlinf]``

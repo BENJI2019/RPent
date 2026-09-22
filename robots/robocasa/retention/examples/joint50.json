@@ -1,0 +1,42 @@
+{
+  "base_checkpoint": "/data/checkpoints/robocasa365/pi05_pretrain_human300/multitask_learning/75000",
+  "checkpoint_revision": "robocasa/robocasa365_checkpoints@c484448aba1a9b60a04c9b0ca117241518ea69f3:pi05_pretrain_human300/multitask_learning/75000",
+  "openpi_root": "/opt/robocasa-openpi",
+  "datasets_root": "/data/robocasa/datasets",
+  "output_root": "/data/experiments/pi05-human300-joint50",
+  "openpi_python": "/opt/robocasa-openpi/.venv/bin/python",
+  "simulator_python": "/opt/rpent/.venv/bin/python",
+  "methods": [
+    "full"
+  ],
+  "train_seeds": [
+    0
+  ],
+  "eval_seeds": [
+    1000,
+    1001,
+    1002,
+    1003,
+    1004,
+    1005,
+    1006,
+    1007,
+    1008,
+    1009
+  ],
+  "modes": [
+    "direct",
+    "qwen3_vl_4b",
+    "qwen35_4b"
+  ],
+  "train_steps": 10000,
+  "batch_size": 16,
+  "learning_rate": 1e-05,
+  "demo_fraction": 1,
+  "env_cuda_device": 0,
+  "vla_cuda_device": 1,
+  "epsilon": 0.05,
+  "adaptation_mode": "joint",
+  "adaptation_tasks": null,
+  "evaluation_tasks": null
+}

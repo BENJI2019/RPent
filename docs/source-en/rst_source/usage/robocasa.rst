@@ -14,6 +14,10 @@ for the wire/transport selection.
    ``robots/robocasa/eval/target50.json``. RPent uses ordinary single-task
    ``rpent --robot robocasa`` commands for its 340 cells.
 
+   For the separate Human300 → Target50 π0.5 adaptation experiment with
+   Qwen vision planners, see :doc:`robocasa_retention`. It has its own
+   training, paired evaluation, empty-memory controls, and dependencies.
+
 Runtime flow
 ------------
 
