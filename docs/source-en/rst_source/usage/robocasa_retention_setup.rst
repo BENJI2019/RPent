@@ -73,12 +73,12 @@ Ubuntu is not assumed.
    export MINICONDA_PATH=/home/ma-user/work/dataset/Common_wl/miniconda3
    source "$MINICONDA_PATH/etc/profile.d/conda.sh"
 
-Inspect cluster.env first. Its four prefixes are proposed **new environment paths**,
-not detected installations. To reuse an existing environment, activate and validate
+Inspect cluster.env first. Its four prefix fields are **absolute runtime paths**,
+not Conda environment names. To reuse an existing environment, activate and validate
 it locally, then paste the exact output of echo "$CONDA_PREFIX" into the matching
-field. If cluster.env already exists, add RETENTION_TOOLS_PREFIX and change
-RETENTION_HOME to a verified writable directory; do not overwrite existing settings.
-Do not use short names or combine the three runtime dependency stacks.
+field. If cluster.env already exists, add RETENTION_TOOLS_PREFIX and update any
+paths that differ; do not overwrite existing settings. Keep the three runtime
+dependency stacks separate.
 In each new terminal, reload these settings and activate the simulator environment.
 
 2. Create environments on shared storage
@@ -91,10 +91,18 @@ Conda/uv/pip caches stay under RETENTION_HOME, not the default user cache locati
 
 .. code-block:: bash
 
-   conda create -p "$RETENTION_SIM_PREFIX" python=3.11 pip -y
-   conda create -p "$RETENTION_OPENPI_PREFIX" python=3.11 pip -y
-   conda create -p "$RETENTION_QWEN_PREFIX" python=3.12 pip -y
-   conda create -p "$RETENTION_TOOLS_PREFIX" python=3.12 pip -y
+   # Named creation is pinned to this Conda installation's shared envs directory.
+   export CONDA_ENVS_PATH="$MINICONDA_PATH/envs"
+   conda create -n hyy_vla-rc-sim python=3.11 pip -y
+   conda create -n hyy_vla-rc-openpi python=3.11 pip -y
+   conda create -n hyy_vla-rc-qwen python=3.12 pip -y
+   conda create -n hyy_vla-retention-tools python=3.12 pip -y
+   # Record the actual absolute prefixes; these must match cluster.env.
+   for env_name in hyy_vla-rc-sim hyy_vla-rc-openpi hyy_vla-rc-qwen hyy_vla-retention-tools; do
+     conda activate "$env_name"
+     printf '%s\t%s\n' "$env_name" "$CONDA_PREFIX"
+     conda deactivate
+   done
    "$RETENTION_TOOLS_PREFIX/bin/python" -m pip install uv huggingface_hub
    export PATH="$RETENTION_TOOLS_PREFIX/bin:$PATH"
    conda activate "$RETENTION_SIM_PREFIX"

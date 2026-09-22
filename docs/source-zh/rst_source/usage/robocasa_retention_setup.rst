@@ -69,11 +69,10 @@ MTP 入口只在平台检查通过后创建路径软链，不覆盖已有真实�
    export MINICONDA_PATH=/home/ma-user/work/dataset/Common_wl/miniconda3
    source "$MINICONDA_PATH/etc/profile.d/conda.sh"
 
-先检查并修改 cluster.env。模板里的四个 prefix 是**待创建的新环境路径**，不是已经发现的服务器环境。
-若已有 cluster.env，手动补上 RETENTION_TOOLS_PREFIX，并把 RETENTION_HOME 改到确认可写的目录；
-不要用示例文件覆盖已有设置。先完成这些修改，再运行 load_settings。
-复用现有环境时，分别激活、检查依赖，再将每次 echo "$CONDA_PREFIX" 的完整结果写入模板对应字段。
-不要只填环境短名。三个运行环境不能混装。每次新终端重新加载这一节的变量并激活仿真环境。
+先检查并修改 cluster.env。四个 prefix 字段填写的是**运行时绝对路径**，不是 Conda 环境名。
+复用已有环境时，先激活并检查依赖，再将对应 ``echo "$CONDA_PREFIX"`` 的完整结果写入字段。
+若已有 cluster.env，手动补上 RETENTION_TOOLS_PREFIX 并更新不一致的路径；不要用示例文件覆盖已有设置。
+三个运行环境不能混装。每次新终端重新加载本节变量并激活仿真环境。
 
 2. 创建共享盘环境
 -----------------
@@ -85,10 +84,18 @@ tools 环境放在 Common_wl/miniconda3/envs；Conda/uv/pip 缓存放在 RETENTI
 
 .. code-block:: bash
 
-   conda create -p "$RETENTION_SIM_PREFIX" python=3.11 pip -y
-   conda create -p "$RETENTION_OPENPI_PREFIX" python=3.11 pip -y
-   conda create -p "$RETENTION_QWEN_PREFIX" python=3.12 pip -y
-   conda create -p "$RETENTION_TOOLS_PREFIX" python=3.12 pip -y
+   # 使用环境名创建，并固定到当前共享 Miniconda 的 envs 目录。
+   export CONDA_ENVS_PATH="$MINICONDA_PATH/envs"
+   conda create -n hyy_vla-rc-sim python=3.11 pip -y
+   conda create -n hyy_vla-rc-openpi python=3.11 pip -y
+   conda create -n hyy_vla-rc-qwen python=3.12 pip -y
+   conda create -n hyy_vla-retention-tools python=3.12 pip -y
+   # 记录实际绝对 prefix，并确认与 cluster.env 中的值一致。
+   for env_name in hyy_vla-rc-sim hyy_vla-rc-openpi hyy_vla-rc-qwen hyy_vla-retention-tools; do
+     conda activate "$env_name"
+     printf '%s\t%s\n' "$env_name" "$CONDA_PREFIX"
+     conda deactivate
+   done
    "$RETENTION_TOOLS_PREFIX/bin/python" -m pip install uv huggingface_hub
    export PATH="$RETENTION_TOOLS_PREFIX/bin:$PATH"
    conda activate "$RETENTION_SIM_PREFIX"
