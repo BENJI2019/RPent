@@ -75,6 +75,12 @@ partial-download detection and readiness failures; they do not certify real GPU
 installation. See the [A800 setup walkthrough](../docs/source-en/rst_source/usage/robocasa_retention_setup.rst)
 for installation, runtime probes and the opt-in real policy test.
 
+`test_retention_cluster_contracts.py` checks Linux mount guards, Conda role
+switching and shared-volume configuration without touching real cluster mounts.
+`test_retention_recovery_contracts.py` checks optimizer continuation boundaries,
+evaluation archiving, interrupted plan refresh, process locks and worker ownership.
+These offline checks do not establish real Orbax restoration or MTP GPU execution.
+
 The opt-in RoboCasa smoke suite verifies simulator installation and environment
 interfaces without loading a planner or VLA checkpoint. Install the RoboCasa
 extra and assets, then run:

@@ -47,7 +47,11 @@ def resolve_checkpoint(experiment: Experiment, checkpoint_id: str) -> tuple[Path
             / "checkpoint.json"
         )
         record = json.loads(record_path.read_text(encoding="utf-8"))
-        if record["protocol_id"] != experiment.protocol_id:
+        if (
+            record.get("training_id") != experiment.training_id
+            if "training_id" in record
+            else record["protocol_id"] != experiment.protocol_id
+        ):
             raise ValueError(
                 "checkpoint was trained under a different experiment protocol"
             )

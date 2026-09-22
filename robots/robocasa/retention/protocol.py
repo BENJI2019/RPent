@@ -91,6 +91,7 @@ class Experiment:
     evaluation_tasks: dict[str, list[str]] | None = None
     modes: list[str] = field(default_factory=lambda: list(MODES))
     train_steps: int = 10000
+    save_interval: int = 100
     batch_size: int = 16
     num_workers: int = 4
     learning_rate: float = 1e-5
@@ -188,6 +189,7 @@ class Experiment:
                 )
         for name in (
             "train_steps",
+            "save_interval",
             "batch_size",
             "fsdp_devices",
             "action_steps",
@@ -231,6 +233,34 @@ class Experiment:
                 )
 
     @cached_property
+    def training_id(self) -> str:
+        """Identify optimizer/data semantics independently of Harness evaluation code."""
+        keys = (
+            "base_checkpoint",
+            "checkpoint_revision",
+            "datasets_root",
+            "methods",
+            "train_seeds",
+            "adaptation_tasks",
+            "adaptation_mode",
+            "train_steps",
+            "batch_size",
+            "num_workers",
+            "learning_rate",
+            "fsdp_devices",
+            "demo_fraction",
+        )
+        return fingerprint(
+            {
+                "settings": {key: getattr(self, key) for key in keys},
+                "catalog": load_catalog(),
+                "adapter": Path(__file__)
+                .with_name("openpi_adapter.py")
+                .read_text(encoding="utf-8"),
+            }
+        )
+
+    @cached_property
     def protocol_id(self) -> str:
         settings = asdict(self)
         for key in (
@@ -246,6 +276,7 @@ class Experiment:
         sources = sorted((root / "rpent").rglob("*.py")) + sorted(
             (root / "robots" / "robocasa").rglob("*.py")
         )
+        sources += sorted((Path(__file__).parent / "cluster").glob("*.sh"))
         implementation = fingerprint(
             {
                 str(path.relative_to(root).as_posix()): path.read_text(encoding="utf-8")
@@ -327,6 +358,7 @@ class Experiment:
         return {
             "schema_version": 2,
             "protocol_id": self.protocol_id,
+            "training_id": self.training_id,
             "design": "joint_multitask_adaptation"
             if self.adaptation_mode == "joint"
             else "independent_single_task_adaptation",

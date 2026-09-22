@@ -24,3 +24,7 @@ build/
 .claude/settings.json
 .venv/
 .venv-qwen/
+
+# Local cluster settings and the pinned source checkout packaged for MTP.
+/robots/robocasa/retention/cluster/cluster.env
+/vendor/openpi/

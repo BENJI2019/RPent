@@ -27,6 +27,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from robots.robocasa.retention.protocol import Experiment
+from robots.robocasa.retention.recovery import execution_lock
 
 
 def serve_command(experiment: Experiment, mode: str) -> list[str]:
@@ -94,7 +95,13 @@ def main() -> None:
     parser.add_argument("--mode", required=True)
     args = parser.parse_args()
     experiment = Experiment.load(args.config)
-    command = serve_command(experiment, args.mode)
+    with execution_lock(Path(experiment.output_root) / ".execution.lock", shared=True):
+        serve(experiment, args.mode)
+
+
+def serve(experiment: Experiment, mode: str) -> None:
+    """Record and start the planner while the caller holds the experiment lease."""
+    command = serve_command(experiment, mode)
     versions = {
         name: importlib.metadata.version(name)
         for name in ("vllm", "transformers", "torch")
@@ -104,7 +111,7 @@ def main() -> None:
         "command": command,
         "versions": versions,
     }
-    path = Path(experiment.output_root) / "services" / f"{args.mode}_launch.json"
+    path = Path(experiment.output_root) / "services" / f"{mode}_launch.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.exists() and json.loads(path.read_text(encoding="utf-8")) != record:
         raise ValueError(

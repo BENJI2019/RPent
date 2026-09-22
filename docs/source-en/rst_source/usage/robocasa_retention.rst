@@ -1,5 +1,5 @@
 π0.5 adaptation and retention of old tasks
-==========================================
+===========================================
 
 For first-time server deployment, start with :doc:`robocasa_retention_setup`.
 It covers one/eight A800 80GB GPUs, installation, selected-task downloads,
@@ -187,162 +187,59 @@ Do not repeatedly select learning rates or checkpoints using old300 test results
 The implementation evaluates the final fixed-step checkpoint; resuming training
 does not select a checkpoint using test performance.
 
-Installation and data
----------------------
+Deployment, execution and recovery
+-----------------------------------
 
-Execution requires Linux, CUDA GPUs, RoboCasa assets, Target Human demonstrations
-and the Human300 checkpoint. The official OpenPI fork recommends at least 80 GB
-GPU memory for training; actual requirements depend on batch size, full/LoRA and
-parallelism. Adjust the example paths to your host. Use three separate environments,
-starting from the RPent checkout:
+Use :doc:`robocasa_retention_setup` as the single installation and command guide for
+local single-GPU debugging and single-host eight-GPU MTP jobs. It uses three shared
+Conda environments: simulator/Harness, pinned official OpenPI, and Qwen/vLLM.
+The submitted package must contain RPent and vendor/openpi. Scripts locate code
+through SCRIPT_DIR and activate the absolute prefixes validated locally.
+Artifacts use model/xiaoyi_tmpstorage/hyy_files/rpent/retention_outputs.
+Do not put environments, caches or experiment results under algorithm.
 
-.. code-block:: bash
+Download selected Target Human LeRobot data only. datasets_root contains
+v1.0/target. Old300 evaluation needs simulator code and assets, not old demonstrations.
+Normalization is fixed to the Human300 checkpoint ``assets/**/norm_stats.json``.
+Missing or ambiguous normalization fails instead of reading old data to estimate it.
 
-   # 1. Simulator and Harness, without the RLDX policy backend
-   uv venv .venv --python 3.11
-   uv pip install --python .venv/bin/python -e ".[test,robocasa-pi05]" \
-     -c robots/robocasa/retention/runtime-constraints.txt --torch-backend auto
-   # Follow the ordinary RoboCasa guide for EGL/system dependencies and assets
-   .venv/bin/robocasa-download-assets --help
+Create a configuration with run_local.sh init, then run doctor, plan, baseline,
+train --all --resume, adapted evaluation and summarize. Manually submit run_mtp.sh
+through the platform; do not run it on the local host. Eight-GPU training uses
+one JAX/FSDP process, not eight duplicate trainers. For each Qwen mode, planner and
+evaluation workers run in the same job. Locally, run modes sequentially on GPU0.
 
-   # 2. Official benchmark OpenPI; use absolute directory paths
-   export RPENT_DIR="$PWD"
-   export OPENPI_DIR=/opt/robocasa-openpi
-   git clone https://github.com/robocasa-benchmark/openpi "$OPENPI_DIR"
-   git -C "$OPENPI_DIR" checkout 5a6beda9ff99da30b4e1b59320f6a32971d7c397
-   cd "$OPENPI_DIR"
-   uv sync --python 3.11
-   uv pip freeze --python .venv/bin/python | sed '/^-e /d' > openpi-constraints.txt
-   uv pip install --python .venv/bin/python -e "$RPENT_DIR[robocasa-pi05]" \
-     -c openpi-constraints.txt
-   cd "$RPENT_DIR"
+Single-task run IDs look like full/OpenDrawer/seed_0; joint50 uses
+full/joint_target50/seed_0. Joint subset IDs include a task-set digest in plan.json.
+Methods are full and lora. Default demo_fraction=1.0 selects500_demos.
+Keep the declared training IDs and task scope fixed during a run.
 
-   # 3. Qwen serving; preserve resolved versions after the pilot
-   uv venv .venv-qwen --python 3.12
-   uv pip install --python .venv-qwen/bin/python -e . vllm --torch-backend auto
-   mkdir -p logs
-   uv pip freeze --python .venv-qwen/bin/python > logs/qwen-requirements.txt
+Checkpoint recovery
+~~~~~~~~~~~~~~~~~~~~
 
-Do not install RPent's LIBERO OpenPI fork or Qwen's newer Transformers into the
-second environment. Training and evaluation verify its OpenPI source revision and
-import location. The simulator dependencies of ``.[robocasa-pi05]`` track RPent
-branches: save ``uv pip freeze`` output for all three environments, including
-resolved source commits, after the pilot and keep them fixed for final runs.
-The code checks OpenPI source and declared model revisions, not every byte of
-large local weight files. Download the pinned revision below and keep weights
-read-only.
+save_interval controls intermediate saves. Repeating train --all --resume on the
+same configuration restores the latest complete optimizer state and skips models
+with valid completion records. This upstream version does not save the data-loader
+cursor, so resumed sampling is not guaranteed to match uninterrupted training.
+status reports saved directories and plan compatibility; Orbax validates restoration.
 
-.. code-block:: bash
+After Harness or evaluation-only changes, stop related processes and run
+refresh-plan. It requires an unchanged training_id, retains training, and archives
+previous evaluation, summaries, service records and plan under history/<old-ID>.
+New and old evaluation results are not mixed. Changes to training tasks, learning
+rate, batch, FSDP or training-adapter source require a new experiment. Legacy plans
+without training_id cannot be certified automatically. See the setup guide for
+recovery commands and incomplete-checkpoint behavior.
 
-   # Use an environment containing hf; download only this checkpoint subtree
-   hf download robocasa/robocasa365_checkpoints \
-     --revision c484448aba1a9b60a04c9b0ca117241518ea69f3 \
-     --include "pi05_pretrain_human300/multitask_learning/75000/**" \
-     --local-dir /data/checkpoints/robocasa365
+Use --tasks / --max-cells to run a small execution subset before completing the
+declared grid; these flags do not change denominators. Completed cells are skipped;
+infrastructure errors remain missing. Clear stale .running markers only after the
+original process stopped. Do not delete ordinary task failures to retry until success.
 
-   # Target Human only; do not use --all
-   .venv/bin/python -m robocasa.scripts.download_datasets \
-     --split target --source human
-
-For direct upstream downloads, set ``DATASET_BASE_PATH`` through this RPent
-branch's ``ROBOCASA_MACROS_PATH``. The new ``download-data --execute`` command
-sets the configured path within its download process without editing installed
-packages; see :doc:`robocasa_retention_setup`.
-``datasets_root`` is the directory containing ``v1.0/target/...``.
-Data is already in LeRobot format. Old300 evaluation needs simulator code and
-assets, not old demonstrations. Normalization remains fixed to the checkpoint's
-single ``assets/**/norm_stats.json``; missing or ambiguous assets raise errors
-instead of recomputing statistics from old data.
-
-Execution
----------
-
-Copy a stage configuration above to ``logs/retention.json`` and update paths and
-GPU ordinals. Start with ``pilot1.json``, then use ``joint50.json`` and a fresh
-output directory for the main experiment.
-``openpi_python`` points to environment 2; ``simulator_python`` to environment 1.
-Training uses the caller's ``CUDA_VISIBLE_DEVICES``; evaluation uses configured
-``env_cuda_device`` and ``vla_cuda_device``. Qwen services select GPUs in their
-launch commands. Evaluate Qwen modes sequentially if memory cannot hold both.
-
-.. code-block:: bash
-
-   .venv/bin/python -m robots.robocasa.retention --config logs/retention.json plan
-
-   # Separate terminals; only the planner being evaluated needs to run
-   CUDA_VISIBLE_DEVICES=2 .venv-qwen/bin/python \
-     -m robots.robocasa.retention.serve_planner \
-     --config logs/retention.json --mode qwen3_vl_4b
-   CUDA_VISIBLE_DEVICES=3 .venv-qwen/bin/python \
-     -m robots.robocasa.retention.serve_planner \
-     --config logs/retention.json --mode qwen35_4b
-
-Services use pinned model revisions, greedy generation and disabled thinking.
-Tool parsers are hermes and qwen3_coder respectively. Commands and resolved vLLM,
-Torch and Transformers versions are recorded in ``services/*_launch.json``;
-changed launch metadata requires a fresh output directory. External APIs can be
-configured through ``planners``, but their operator must ensure stable model
-versions and decoding settings. Before scaling up, use ``rpent-check-llm``
-from :doc:`configure_planner` to check text connectivity. It does not test images
-or tools; use bounded episodes with the real Qwen model to check both.
-
-Run the real component and bounded policy-chain test first:
-
-.. code-block:: bash
-
-   export MUJOCO_GL=egl PYOPENGL_PLATFORM=egl
-   export PI05_CHECKPOINT_PATH=/data/checkpoints/robocasa365/pi05_pretrain_human300/multitask_learning/75000
-   export PI05_PYTHON=/opt/robocasa-openpi/.venv/bin/python
-   RPENT_RUN_PI05_INTEGRATION=1 CUDA_VISIBLE_DEVICES=0 \
-     .venv/bin/python -m pytest \
-     tests/e2e_tests/robocasa/test_pi05_retention.py -v --timeout=1200
-
-This test uses the real model and simulator, then a deterministic offline planner
-to verify Harness tool execution and cleanup. It does not require task success
-and does not establish Qwen agent performance.
-
-.. code-block:: bash
-
-   # Base checkpoint; all means every mode enabled in the configuration
-   .venv/bin/python -m robots.robocasa.retention --config logs/retention.json \
-     evaluate --checkpoint base --mode all
-
-   # Configured independent or joint training; resume skips completed checkpoints
-   CUDA_VISIBLE_DEVICES=1 .venv/bin/python -m robots.robocasa.retention \
-     --config logs/retention.json train --all --resume
-
-   # Reuses completed baseline cells, then evaluates all adapted models
-   .venv/bin/python -m robots.robocasa.retention --config logs/retention.json \
-     evaluate --checkpoint all --mode all
-   .venv/bin/python -m robots.robocasa.retention --config logs/retention.json summarize
-
-The independent one-task run ID is ``full/OpenDrawer/seed_0``; joint50 uses
-``full/joint_target50/seed_0``. Joint subset IDs include a task-set hash and can be
-read from ``plan.json``. Select a training job with ``train --run-id <ID> --resume``
-and evaluate it with ``evaluate --checkpoint <ID> --mode direct``.
-``methods: ["full", "lora"]`` adds LoRA adaptations and evaluations.
-``demo_fraction`` must select a demonstration filter key supplied by the dataset;
-the default 1.0 selects 500_demos.
-
-Shard with ``--num-shards N --shard-index i``, assigning workers independent π0.5
-GPUs. Run plan once before dispatching shards. Cells have exclusive ownership.
-Completed results are skipped on retry. Remove a crash's stale ``.running`` lock
-only after checking its original process has stopped. Protocol/code/path identity
-changes refuse existing output. Changing training design, training tasks, evaluation
-scope or modes also requires a fresh ``output_root``. Existing configurations may
-omit the new fields to retain independent training and full evaluation defaults.
-Training results are not imported across protocols. To evaluate one checkpoint
-on a few tasks first and later complete the full benchmark, declare
-``evaluation_tasks: null`` from the outset, run with ``--tasks`` / ``--max-cells``,
-then remove those limits. These flags restrict execution without changing the
-declared denominator.
-
-``summary/comparisons.csv`` contains model/mode/group changes.
-``per_task.csv`` contains tasks with all expected paired episodes.
-``summary.json`` includes evaluation scope, missing-pair counts, examples and coverage. Incomplete groups have no
-score and summarize exits with code 2. Infrastructure failures exit evaluation
-with code 1 and can be retried after repair. Never feed held-out old-task results
-back into training or agent memory.
+summary/comparisons.csv reports model/mode/group changes, per_task.csv reports
+task results, and summary.json records scope and missing pairs. Group scores with
+missing pairs remain null and summarize exits2; infrastructure execution failures
+exit1. Never feed held-out old-task results into training or agent memory.
 
 Limits and further methods
 --------------------------

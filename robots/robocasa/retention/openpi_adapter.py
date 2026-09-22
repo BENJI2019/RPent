@@ -147,7 +147,7 @@ def training_config(experiment: Experiment, run: dict, *, resume: bool = False) 
             decay_steps=experiment.train_steps,
             decay_lr=experiment.learning_rate / 10,
         ),
-        save_interval=min(1000, experiment.train_steps),
+        save_interval=min(experiment.save_interval, experiment.train_steps),
         keep_period=None,
         wandb_enabled=False,
         overwrite=False,

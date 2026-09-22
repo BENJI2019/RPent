@@ -18,6 +18,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import shlex
 import sys
 from pathlib import Path
 
@@ -37,19 +39,33 @@ PRESETS = {
     "joint50": "examples/joint50.json",
     "independent50": "example.json",
 }
+SHARED_MODEL_ROOTS = (Path("/home/ma-user/work/model"), Path("/opt/huawei/quoteModel"))
+SHARED_DATASET_ROOTS = (Path("/home/ma-user/work/dataset"), Path("/opt/huawei/dataset"))
 
 
 def initialize(
     destination: Path,
     *,
     preset: str,
-    workspace: Path,
+    workspace: Path | None = None,
+    profile: str = "generic",
     with_planners: bool = False,
     fsdp_devices: int = 1,
     output_root: Path | None = None,
 ) -> Experiment:
     """Write a new configuration with local absolute paths; never replace an existing one."""
-    workspace = workspace.expanduser().resolve()
+    if destination.exists():
+        raise FileExistsError(destination)
+    if profile == "huawei":
+        resources = cluster_resources(destination, preset, output_root)
+        workspace = Path(os.environ["RETENTION_HOME"])
+    elif profile == "generic" and workspace is not None:
+        resources = {}
+        workspace = workspace.expanduser().resolve()
+    else:
+        raise ValueError(
+            "generic init requires --workspace; use the launchers for --profile huawei"
+        )
     template = Path(__file__).parent / PRESETS[preset]
     config = json.loads(template.read_text(encoding="utf-8"))
     openpi = workspace / "openpi"
@@ -82,6 +98,7 @@ def initialize(
     )
     if with_planners:
         config["modes"] = list(MODES)
+    config.update(resources)
     experiment = Experiment(**config)
     experiment.validate()
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -89,6 +106,81 @@ def initialize(
         json.dump(config, file, indent=2)
         file.write("\n")
     return experiment
+
+
+def cluster_resources(
+    destination: Path, preset: str, output_root: Path | None
+) -> dict[str, str]:
+    """Bind a Huawei configuration to this package and shared Conda interpreters."""
+    required = (
+        "RETENTION_HOME",
+        "RETENTION_CODE_ROOT",
+        "RETENTION_DATASETS",
+        "RETENTION_CHECKPOINT",
+        "RETENTION_SIM_PREFIX",
+        "RETENTION_OPENPI_PREFIX",
+    )
+    values = {}
+    for name in required:
+        value = os.environ.get(name, "")
+        if not value or not Path(value).is_absolute():
+            raise ValueError(
+                f"{name} must be an absolute path; use run_local.sh or run_mtp.sh"
+            )
+        # Keep logical shared-volume paths: resolve() differs between local and MTP.
+        values[name] = Path(value)
+    platform = os.environ.get("RETENTION_EXECUTION")
+    if sys.platform != "linux" or platform not in {"local", "mtp"}:
+        raise ValueError("Huawei preparation requires a Linux local/MTP launcher")
+    home = values["RETENTION_HOME"]
+    shared_models = SHARED_MODEL_ROOTS
+    if not any(
+        home.is_relative_to(root / "xiaoyi_tmpstorage") for root in shared_models
+    ):
+        raise ValueError("RETENTION_HOME must be on model/xiaoyi_tmpstorage")
+    if not destination.resolve().is_relative_to(home.resolve()):
+        raise ValueError(
+            "Huawei configuration and setup reports must be under RETENTION_HOME"
+        )
+    output = output_root or home / "retention_outputs" / platform / preset
+    if not output.resolve().is_relative_to(home.resolve()):
+        raise ValueError("Huawei output_root must be under RETENTION_HOME")
+    root = values["RETENTION_CODE_ROOT"]
+    if root.resolve() != Path(__file__).resolve().parents[3]:
+        raise ValueError("RPent was imported from outside the submitted package")
+    wrappers = home / "runtime" / platform / destination.stem
+    result = {}
+    for role, variable, key in (
+        ("simulator", "RETENTION_SIM_PREFIX", "simulator_python"),
+        ("openpi", "RETENTION_OPENPI_PREFIX", "openpi_python"),
+    ):
+        prefix = values[variable]
+        allowed = (*shared_models, *SHARED_DATASET_ROOTS)
+        if not any(prefix.is_relative_to(p) for p in allowed):
+            raise ValueError(
+                f"{variable} must refer to an environment on a shared volume"
+            )
+        script = wrappers / f"{role}-python"
+        content = (
+            "#!/bin/bash\nset -euo pipefail\n"
+            'exec bash "${RETENTION_CODE_ROOT:?Use a retention launcher}/robots/robocasa/retention/cluster/python.sh" '
+            f'{role} {shlex.quote(str(prefix))} "$@"\n'
+        )
+        if script.exists() and script.read_text(encoding="utf-8") != content:
+            raise ValueError(
+                f"interpreter environment changed: {script}; use a new experiment name"
+            )
+        script.parent.mkdir(parents=True, exist_ok=True)
+        script.write_text(content, encoding="utf-8")
+        script.chmod(0o755)
+        result[key] = str(script)
+    return {
+        **result,
+        "base_checkpoint": str(values["RETENTION_CHECKPOINT"]),
+        "datasets_root": str(values["RETENTION_DATASETS"]),
+        "openpi_root": str(root / "vendor/openpi"),
+        "output_root": str(output),
+    }
 
 
 def target_paths(experiment: Experiment) -> dict[str, Path]:

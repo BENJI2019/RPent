@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import runpy
 from pathlib import Path
 
@@ -27,6 +28,7 @@ from robots.robocasa.retention.openpi_adapter import (
     verify_openpi_checkout,
 )
 from robots.robocasa.retention.protocol import Experiment, load_catalog
+from robots.robocasa.retention.recovery import execution_lock
 from rpent.evaluation import write_json_atomic
 from rpent.utils.logging import get_logger, init_output_dir
 
@@ -36,20 +38,38 @@ logger = get_logger("retention.train")
 def train(experiment: Experiment, run_id: str, *, resume: bool = False) -> Path:
     """Train one configured full/LoRA model and record its exact final checkpoint."""
     run = experiment.run(run_id)
+    root = Path(experiment.output_root)
+    with (
+        execution_lock(root / ".execution.lock", shared=True),
+        execution_lock(root / "training" / run_id / ".training.lock"),
+    ):
+        return train_locked(experiment, run, resume=resume)
+
+
+def train_locked(experiment: Experiment, run: dict, *, resume: bool) -> Path:
+    """Run the optimizer with exclusive ownership of this training run."""
+    run_id = run["id"]
     verify_openpi_checkout(experiment.openpi_root)
     output = Path(experiment.output_root) / "training" / run_id
     output.mkdir(parents=True, exist_ok=True)
     init_output_dir(output)
     record = {
         "protocol_id": experiment.protocol_id,
+        "training_id": experiment.training_id,
         "run": run,
         "base_norm_sha256": norm_digest(experiment.base_checkpoint),
         "openpi_revision": load_catalog()["openpi_revision"],
         "pretraining_samples_used": 0,
     }
     provenance = output / "provenance.json"
-    if provenance.exists() and json.loads(provenance.read_text()) != record:
-        raise ValueError("refusing to reuse training output from another protocol")
+    if provenance.exists():
+        previous = json.loads(provenance.read_text(encoding="utf-8"))
+        expected = {k: v for k, v in record.items() if k != "protocol_id"}
+        actual = {k: v for k, v in previous.items() if k != "protocol_id"}
+        if actual != expected:
+            raise ValueError(
+                "refusing to reuse training output with different training provenance"
+            )
     completed = output / "checkpoint.json"
     if completed.exists():
         if resume:
@@ -68,7 +88,23 @@ def train(experiment: Experiment, run_id: str, *, resume: bool = False) -> Path:
         )
     # Execute the installed upstream training entry point, not a copied optimizer.
     upstream = runpy.run_path(str(entry), run_name="rpent_openpi_training")
-    upstream["main"](cfg)
+    # This upstream revision hardcodes ~/.cache/jax in main. Redirect that one
+    # setting without changing HOME, source checkout, or optimization semantics.
+    if cache := os.environ.get("JAX_COMPILATION_CACHE_DIR"):
+        import jax
+
+        update = jax.config.update
+
+        def configure(name, value):
+            update(name, cache if name == "jax_compilation_cache_dir" else value)
+
+        jax.config.update = configure
+        try:
+            upstream["main"](cfg)
+        finally:
+            jax.config.update = update
+    else:
+        upstream["main"](cfg)
     final = cfg.checkpoint_dir / str(experiment.train_steps - 1)
     if not (final / "params").is_dir():
         raise RuntimeError(

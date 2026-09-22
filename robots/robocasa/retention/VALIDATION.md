@@ -1,5 +1,57 @@
 # 验证记录（2026-09-21）
 
+## 本机/MTP 路径与调试断点续跑
+
+本轮基于 `97ac5b2` 的工作区修改，分支为 `codex/robocasa-pi05-retention`。
+已重新读取用户修正后的规则，默认产物目录为
+`/home/ma-user/work/model/xiaoyi_tmpstorage/hyy_files/rpent/`，
+算法包为 `hyy_vla`，RPent 位于包内 `rpent/`。
+用户自行修改的 `.codex/rules/workspace-paths.rules` 保留，不属于本轮代改内容。
+
+新增本地/MTP 启动入口、共享 Conda 环境包装器和同作业分片评测。
+MTP 检查节点/GPU 元数据后才操作路径软链，单节点 JAX/FSDP 训练不使用 torchrun。
+增加 `save_interval`、`status`、`refresh-plan`、训练身份与进程锁；
+仅评测或 Harness 变更可保留训练状态，并归档旧评测。更改训练语义拒绝原地恢复。
+
+| 检查 | 结果 |
+| --- | --- |
+| Linux RoboCasa、配置/注册及可选 GPU 检查 | 116 passed、1 skipped、28 deselected；真实 GPU 用例因缺少资源跳过 |
+| Windows retention、准备与恢复检查 | 64 passed、1 skipped；跳过 Linux 进程组检查 |
+| 中英文 Sphinx，`-W --keep-going` | 通过，构建目录位于 WSL `/tmp/rpent-cluster-docs-{zh,en}` |
+| 指南与脚本语法 | 每种语言13组 Bash 命令一致，Bash 语法及内嵌 Python 解析通过；6个启动相关脚本语法通过 |
+| 实际 CLI | 五种 preset 的 init、下载预览、plan、status、协议变更拒绝和 refresh-plan 通过；临时目录验证后移除 |
+| 全库 Ruff、格式检查、`git diff --check` | 通过，250个 Python 文件格式符合要求 |
+
+新增用例覆盖：错误平台信息与本机误启动防护、已有目录保护、Conda/cuDNN 切换、
+配置及产物路径、保存后中断并再次调用上游 resume、已完成模型跳过、训练参数变更拒绝、
+评测归档与归档事务恢复、进程锁释放、JAX 缓存重定向和恢复原设置、
+单卡/八卡 worker 分配、现有服务端口冲突、退出时终止拥有的进程。
+训练保存/恢复使用离线替身验证控制流，不是对真实 Orbax 文件或 A800 训练的认证。
+
+上游固定版本保存模型和优化器等训练状态，但不保存数据加载器游标；文档明确不承诺
+恢复后与连续运行逐步相同。未执行：真实 Conda/CUDA 安装、资源下载、A800 SFT/LoRA、
+MTP 平台提交、Qwen 视觉工具调用、真实任务成功率评测。本轮未重跑完整仓库测试或完整 CI 矩阵；
+下方保留此前完整套件的既有失败记录。没有删除已有日志、环境或结果。
+
+主要检查命令（本轮测试临时文件放在 WSL `/tmp`，没有创建新的服务器训练产物）：
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 logs/test-linux/bin/python -m pytest \
+  tests/unit_tests/robots/robocasa \
+  tests/unit_tests/rpent/robots/test_config_contracts.py \
+  tests/unit_tests/rpent/robots/test_registry_contracts.py \
+  tests/e2e_tests/robocasa/test_pi05_retention.py \
+  -k robocasa -q --disable-warnings -p no:cacheprovider \
+  --basetemp=/tmp/rpent-cluster-checks
+sphinx-build -W --keep-going -q docs/source-zh /tmp/rpent-cluster-docs-zh
+sphinx-build -W --keep-going -q docs/source-en /tmp/rpent-cluster-docs-en
+ruff check --preview --no-cache .
+ruff format --check --no-cache .
+git diff --check
+```
+
+## 此前验证记录
+
 本次修改位于 `codex/robocasa-pi05-retention`，基线为 `cb2eb7d`。
 这些记录验证软件契约，不表示已获得任何机器人任务成功率。
 

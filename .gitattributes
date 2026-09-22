@@ -1,0 +1,3 @@
+# These launchers are copied from Windows workstations to Linux MTP snapshots.
+robots/robocasa/retention/cluster/*.sh text eol=lf
+robots/robocasa/retention/cluster/*.env* text eol=lf

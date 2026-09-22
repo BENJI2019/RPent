@@ -23,6 +23,11 @@ from pathlib import Path
 
 from robots.robocasa.retention.prepare import PRESETS, initialize, target_paths
 from robots.robocasa.retention.protocol import Experiment
+from robots.robocasa.retention.recovery import (
+    execution_lock,
+    refresh_plan,
+    training_status,
+)
 from rpent.evaluation import write_json_atomic
 from rpent.utils.config import get_repo_root
 from rpent.utils.logging import get_logger, init_output_dir
@@ -38,7 +43,10 @@ def main() -> None:
         "init", help="create a stage configuration with absolute local paths"
     )
     setup.add_argument("--preset", required=True, choices=list(PRESETS))
-    setup.add_argument("--workspace", required=True, type=Path)
+    setup.add_argument(
+        "--workspace", type=Path, help="required for the generic profile"
+    )
+    setup.add_argument("--profile", choices=["generic", "huawei"], default="generic")
     setup.add_argument("--with-planners", action="store_true")
     setup.add_argument("--fsdp-devices", type=int, default=1)
     setup.add_argument(
@@ -61,6 +69,13 @@ def main() -> None:
     )
     commands.add_parser(
         "plan", help="write the immutable protocol and declared grid counts"
+    )
+    commands.add_parser(
+        "status", help="inspect saved training state and protocol compatibility"
+    )
+    commands.add_parser(
+        "refresh-plan",
+        help="archive evaluation outputs and keep compatible training after code/config changes",
     )
     training = commands.add_parser(
         "train", help="run configured independent or joint OpenPI SFT jobs"
@@ -87,17 +102,19 @@ def main() -> None:
     )
     args = parser.parse_args()
     config_path = Path(args.config).resolve()
-    if args.command in {"init", "download-data", "doctor"}:
+    if args.command in {"download-data", "doctor"}:
         init_output_dir(config_path.parent / f"{config_path.stem}-setup-logs")
     if args.command == "init":
         experiment = initialize(
             config_path,
             preset=args.preset,
             workspace=args.workspace,
+            profile=args.profile,
             with_planners=args.with_planners,
             fsdp_devices=args.fsdp_devices,
             output_root=args.output_root,
         )
+        init_output_dir(config_path.parent / f"{config_path.stem}-setup-logs")
         logger.info("config: %s; output: %s", config_path, experiment.output_root)
         return
     experiment = Experiment.load(config_path)
@@ -141,12 +158,39 @@ def main() -> None:
     root = Path(experiment.output_root)
     root.mkdir(parents=True, exist_ok=True)
     init_output_dir(root / "driver")
+    with execution_lock(
+        root / ".execution.lock", shared=args.command != "refresh-plan"
+    ):
+        execute(experiment, config_path, args, parser)
+
+
+def execute(
+    experiment: Experiment,
+    config_path: Path,
+    args: argparse.Namespace,
+    parser: argparse.ArgumentParser,
+) -> None:
+    """Run one operation while holding the experiment's execution lease."""
+    root = Path(experiment.output_root)
+    if args.command == "status":
+        report = training_status(experiment)
+        write_json_atomic(root / "status.json", report)
+        logger.info("training status: %s", json.dumps(report, ensure_ascii=False))
+        return
+    if args.command == "refresh-plan":
+        archive = refresh_plan(experiment)
+        logger.info(
+            "plan refreshed; training preserved; previous evaluation: %s", archive
+        )
+        return
+    if (root / ".refresh-plan.json").exists():
+        parser.error("plan refresh was interrupted; rerun refresh-plan first")
     plan_path = root / "plan.json"
     if plan_path.exists():
         stored = json.loads(plan_path.read_text(encoding="utf-8"))
         if stored["protocol_id"] != experiment.protocol_id:
             parser.error(
-                "output_root already belongs to another protocol; choose a fresh directory"
+                "protocol changed; inspect status and use refresh-plan if training is unchanged, otherwise choose a fresh output_root"
             )
     else:
         write_json_atomic(plan_path, experiment.plan())

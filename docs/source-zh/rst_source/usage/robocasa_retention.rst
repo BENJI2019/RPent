@@ -163,150 +163,53 @@ API 故障、进程超时、缺失结果保留为未完成，不能记成机器�
 不要根据旧 300 任务评测反复选择学习率或 checkpoint；否则旧任务测试集变成了验证集。
 当前代码固定训练步数并评测最终 checkpoint，保存恢复不等于按测试集挑选模型。
 
-部署与数据
-----------
+部署、运行与恢复
+----------------
 
-需要 Linux、CUDA GPU、RoboCasa 场景资产、Target Human 示范及 Human300 权重。
-官方 OpenPI fork 建议训练使用至少 80 GB 显存的 GPU；实际需求取决于
-batch size、全参数或 LoRA 及并行配置。示例路径需要按服务器修改。
-以下从 RPent 仓库根目录执行，使用三个独立 Python 环境：
+按 :doc:`robocasa_retention_setup` 配置本地单卡和 MTP 单机8卡环境。
+该指南是安装、路径、数据下载及启动命令的统一入口，使用共享盘上的三个 Conda 环境：
+仿真/Harness、固定官方 OpenPI、Qwen/vLLM。MTP 的同一算法包必须包含 RPent 与 vendor/openpi，
+代码通过 SCRIPT_DIR 定位，环境使用本机验证过的绝对 prefix。
+产物在 model/xiaoyi_tmpstorage/hyy_files/rpent/retention_outputs，
+不在 algorithm 下创建环境、缓存或训练结果。
 
-.. code-block:: bash
+只下载所选 Target Human 的 LeRobot 数据。datasets_root 包含 v1.0/target；
+旧300评测只需要仿真代码和资产，不需要旧示范。
+归一化来自固定 Human300 checkpoint 的 ``assets/**/norm_stats.json``，
+找不到或发现多个文件时会拒绝运行，不读取旧示范重新估计。
 
-   # 1. 仿真与 Harness，不安装 RLDX 权重后端
-   uv venv .venv --python 3.11
-   uv pip install --python .venv/bin/python -e ".[test,robocasa-pi05]" \
-     -c robots/robocasa/retention/runtime-constraints.txt --torch-backend auto
-   # 按普通 RoboCasa 使用指南安装 EGL/系统依赖并下载资产
-   .venv/bin/robocasa-download-assets --help
+先用 run_local.sh init 创建配置，依次执行 doctor、plan、baseline、
+train --all --resume、适应后评测和 summarize。MTP 通过 run_mtp.sh 在平台手动提交，
+不能在本机运行该入口。八卡训练是一进程 JAX/FSDP，不是八个重复训练进程。
+两个 Qwen 模式分别在同一作业内提供 planner 和评测 worker；本机可顺序共享GPU0。
 
-   # 2. 官方 RoboCasa OpenPI fork；OPENPI_DIR、RPENT_DIR 使用绝对路径
-   export RPENT_DIR="$PWD"
-   export OPENPI_DIR=/opt/robocasa-openpi
-   git clone https://github.com/robocasa-benchmark/openpi "$OPENPI_DIR"
-   git -C "$OPENPI_DIR" checkout 5a6beda9ff99da30b4e1b59320f6a32971d7c397
-   cd "$OPENPI_DIR"
-   uv sync --python 3.11
-   uv pip freeze --python .venv/bin/python | sed '/^-e /d' > openpi-constraints.txt
-   uv pip install --python .venv/bin/python -e "$RPENT_DIR[robocasa-pi05]" \
-     -c openpi-constraints.txt
-   cd "$RPENT_DIR"
+单任务训练 ID 是 full/OpenDrawer/seed_0；联合50是 full/joint_target50/seed_0；
+联合子集 ID 含任务集合摘要，可从 plan.json 读取。方法可选 full 和 lora。
+demo_fraction 默认1.0，对应500_demos。训练 ID 与任务范围确定后不应随意更改。
 
-   # 3. Qwen 推理服务；在 pilot 验证后保留实际版本
-   uv venv .venv-qwen --python 3.12
-   uv pip install --python .venv-qwen/bin/python -e . vllm --torch-backend auto
-   mkdir -p logs
-   uv pip freeze --python .venv-qwen/bin/python > logs/qwen-requirements.txt
+断点恢复
+~~~~~~~~
 
-不要把 RPent 的 LIBERO OpenPI fork 或 Qwen 所需的新 Transformers
-装进第二个环境。训练与评测会核对第二个环境的 OpenPI 源码版本及导入位置。
-``.[robocasa-pi05]`` 的仿真依赖跟随 RPent 分支，应在 pilot 后保存
-三个环境的 ``uv pip freeze`` 输出，包括源仓库实际 commit，并在正式实验保持一致。
-这里只核对 OpenPI 源码和声明的模型 revision，不逐字节校验几十 GB 的本地权重；
-应使用下面的固定 revision 下载，并保持权重目录只读。
+save_interval 控制中间状态保存。重跑同一配置的 train --all --resume
+恢复最新完整 checkpoint 的优化器等状态，并跳过已有完成记录的模型。
+上游没有保存数据加载器游标，恢复不保证与未中断的采样顺序逐步相同。
+status 报告已有保存目录与计划兼容性；真正可恢复性仍由 Orbax 检验。
 
-.. code-block:: bash
+仅修改 Harness 或评测代码/配置时，可在停止相关进程后执行 refresh-plan：
+训练身份 training_id 相同才允许保留训练，将旧评测、汇总、服务记录和计划归档到
+history/<旧协议ID>，新旧评测互不混用。改变训练任务、学习率、batch、FSDP 等，
+或修改训练适配代码，则需要新实验。旧版没有 training_id 的计划不能自动认证复用。
+完整说明、恢复命令及不完整 checkpoint 的处理见部署指南。
 
-   # 在已安装 hf 的环境下载指定权重子目录
-   hf download robocasa/robocasa365_checkpoints \
-     --revision c484448aba1a9b60a04c9b0ca117241518ea69f3 \
-     --include "pi05_pretrain_human300/multitask_learning/75000/**" \
-     --local-dir /data/checkpoints/robocasa365
+评测可用 --tasks / --max-cells 先限制执行，再去掉限制补齐；
+它们不改变声明分母。已完成回合会跳过，基础设施错误保持未完成。
+遗留 .running 标记只能在确认原进程已停止后处理。
+不要删除正常失败回合来反复测试到成功。
 
-   # 只下载 Target Human 数据；不用 --all
-   .venv/bin/python -m robocasa.scripts.download_datasets \
-     --split target --source human
-
-直接使用官方下载命令时，需要通过该 RPent 分支的 ``ROBOCASA_MACROS_PATH``
-配置 ``DATASET_BASE_PATH``。新的 ``download-data --execute`` 会在下载进程中
-按实验配置设置路径，无需修改包内文件，详见 :doc:`robocasa_retention_setup`。
-配置中的 ``datasets_root`` 是含 ``v1.0/target/...`` 的 datasets 根目录；
-数据已经是 LeRobot 格式。旧 300 任务只需要仿真代码和资产，不需要旧示范。
-归一化统计从 checkpoint 的 ``assets/**/norm_stats.json`` 读取并固定，
-不会调用旧数据重新估计；找不到或发现多个文件会报错。
-
-运行顺序
---------
-
-从上面的阶段配置中选择一份复制到 ``logs/retention.json``，修改路径和 GPU 编号。
-例如先用 ``pilot1.json``，主实验再复制 ``joint50.json`` 并使用新的输出目录。
-``openpi_python`` 指向第二个环境，``simulator_python`` 指向第一个环境。
-训练 GPU 由调用命令的 ``CUDA_VISIBLE_DEVICES`` 控制；
-评测环境和 π0.5 服务分别使用配置的 ``env_cuda_device``、``vla_cuda_device``。
-Qwen GPU 由各自服务命令指定，可顺序运行两个 Qwen 模式以节省显存。
-
-.. code-block:: bash
-
-   .venv/bin/python -m robots.robocasa.retention --config logs/retention.json plan
-
-   # 两个独立终端；可只启动当前要评测的那个服务
-   CUDA_VISIBLE_DEVICES=2 .venv-qwen/bin/python \
-     -m robots.robocasa.retention.serve_planner \
-     --config logs/retention.json --mode qwen3_vl_4b
-   CUDA_VISIBLE_DEVICES=3 .venv-qwen/bin/python \
-     -m robots.robocasa.retention.serve_planner \
-     --config logs/retention.json --mode qwen35_4b
-
-服务使用固定模型 revision、贪心解码和关闭 thinking 的设置；工具解析器分别是
-hermes 和 qwen3_coder。实际 vLLM、Torch、Transformers 版本及命令保存在
-``services/*_launch.json``，同一输出目录不接受变更后的服务配置。
-外部 API 也能通过 ``planners`` 配置，但使用者需要自行保证模型版本与解码参数不变。
-大规模运行前，使用 :doc:`configure_planner` 中的 ``rpent-check-llm`` 验证文本连接。
-这个命令不测试图像或工具调用；还需要用真实 Qwen 的有限回合检查图像输入和工具执行。
-
-先做真实接口与有限动作测试：
-
-.. code-block:: bash
-
-   export MUJOCO_GL=egl PYOPENGL_PLATFORM=egl
-   export PI05_CHECKPOINT_PATH=/data/checkpoints/robocasa365/pi05_pretrain_human300/multitask_learning/75000
-   export PI05_PYTHON=/opt/robocasa-openpi/.venv/bin/python
-   RPENT_RUN_PI05_INTEGRATION=1 CUDA_VISIBLE_DEVICES=0 \
-     .venv/bin/python -m pytest \
-     tests/e2e_tests/robocasa/test_pi05_retention.py -v --timeout=1200
-
-该测试调用真实 π0.5 和仿真器，并用固定的离线 planner 验证 Harness 工具链及清理。
-它不要求任务成功，也不等价于 Qwen agent 的性能验证。
-
-完整实验命令：
-
-.. code-block:: bash
-
-   # 先评测原始权重；all 指配置中启用的全部模式
-   .venv/bin/python -m robots.robocasa.retention --config logs/retention.json \
-     evaluate --checkpoint base --mode all
-
-   # 按配置执行独立或联合训练；已有完整 checkpoint 会在 resume 时跳过
-   CUDA_VISIBLE_DEVICES=1 .venv/bin/python -m robots.robocasa.retention \
-     --config logs/retention.json train --all --resume
-
-   # baseline 自动跳过已完成回合，再评测所有适应后的模型
-   .venv/bin/python -m robots.robocasa.retention --config logs/retention.json \
-     evaluate --checkpoint all --mode all
-   .venv/bin/python -m robots.robocasa.retention --config logs/retention.json summarize
-
-独立单任务训练 ID 为 ``full/OpenDrawer/seed_0``；联合50任务为
-``full/joint_target50/seed_0``；联合子集 ID 包含任务集合的摘要，可从 ``plan.json`` 读取。
-需要只运行某个训练时，使用 ``train --run-id <ID> --resume``，评测则使用
-``evaluate --checkpoint <ID> --mode direct``。
-LoRA 使用 ``methods: ["full", "lora"]``，会增加独立训练和评测数量。
-``demo_fraction`` 需要对应数据提供的示范 filter key；
-使用默认 1.0 即 500_demos 最明确。
-
-分片使用 ``--num-shards N --shard-index i``，不同 worker 分配独立的 π0.5 GPU。
-先执行一次 plan，再启动分片；每个 cell 只有一个 owner。
-正常重试会跳过已完成结果；崩溃遗留的 ``.running`` 锁需要确认原进程已结束后清除。
-配置、源代码或目录身份变化会拒绝复用已有结果；改变训练方式、训练任务、评测集或模式
-也需要新的 ``output_root``，已有配置可省略新字段以保持独立训练和完整评测的默认行为。
-当前协议不跨配置导入训练结果；若希望同一 checkpoint 先测少量任务、再补齐完整评测，
-应一开始声明完整 ``evaluation_tasks: null``，先用 ``--tasks`` / ``--max-cells`` 限制执行，
-之后去掉限制补齐。它们只限制执行范围，不改变配置声明的分母。
-
-``summary/comparisons.csv`` 提供每模型、每模式、每组的变化；
-``per_task.csv`` 提供完整回合任务的逐任务结果；
-``summary.json`` 包含评测范围、缺失配对计数、示例与覆盖情况。缺失配对的组分数为空，
-summarize 返回状态码 2；执行时基础设施失败返回状态码 1，修复后可重试。
-保留旧测试结果供最终统计，不把它们送回训练器或 agent 记忆。
+summary/comparisons.csv 提供每模型、模式与分组的变化；
+per_task.csv 提供逐任务结果，summary.json 包含覆盖范围及缺失配对。
+缺失配对的组分数为空，summarize 返回2；运行基础设施错误返回1。
+保留旧测试结果用于最终统计，不把它们送回训练器或 agent 记忆。
 
 研究边界与后续方法
 ------------------
