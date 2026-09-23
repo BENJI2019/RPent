@@ -266,6 +266,21 @@ num_workers、FSDP、示范比例、固定任务目录和训练适配代码。�
 先创建包含两种 planner 的实验，也可以在原 pilot1 的 JSON 中加入相应 modes 后，
 按第6节 refresh-plan 保留训练并重做评测。不要为切换 planner 修改训练任务。
 
+vLLM 只安装一次，目标是共享 ``Common_wl/miniconda3/envs/`` 下的
+``RETENTION_QWEN_PREFIX``。本机和 MTP 启动器都会激活同一个绝对 Conda prefix；不要在
+MTP 再创建或安装一套 Qwen 环境。本配置固定使用官方 CUDA 12.8 vLLM wheel，因为两种启动
+路径都配置了共享 CUDA 12.8 运行时。不要将默认 nightly/``auto`` 命令替换进来：nightly
+默认 CUDA 版本可能与本环境不一致，``auto`` 还可能根据当前节点驱动选择不同的 PyTorch 后端。
+``load_settings`` 会把 uv 缓存放在
+``$RETENTION_HOME/cache/uv``；中断后保留缓存并重试同一条命令，不要清缓存。
+下面命令使用华为源安装普通 PyPI 依赖；vLLM release wheel 和 CUDA 对应的 PyTorch 包仍从
+各自上游下载。若华为源不可用，移除 ``--index-url`` 参数。
+
+Qwen 服务是单卡 planner，不是跨多卡运行的 vLLM 任务。本机评测时 planner 与 worker 共用
+GPU 0；指南中的 MTP 八卡评测由 GPU 0–6 的七个 worker 和 GPU 7 上的 Qwen 组成。多卡策略
+训练由 OpenPI/JAX 环境负责，不是 Qwen 环境负责。先在本机安装并验收，再在 MTP 复用同一个
+共享 Qwen prefix；MTP 仍需按第8节单独初始化实验配置。
+
 .. code-block:: bash
 
    bash "$CLUSTER/run_local.sh" init pilot1 pilot1-agent --with-planners
@@ -287,7 +302,9 @@ num_workers、FSDP、示范比例、固定任务目录和训练适配代码。�
    )"
    test -n "$VLLM_WHEEL_URL"
    printf '%s\n' "$VLLM_WHEEL_URL" > "$RETENTION_HOME/env/vllm-wheel-url.txt"
-   uv pip install --python "$RETENTION_QWEN_PREFIX/bin/python" "$VLLM_WHEEL_URL" --torch-backend cu128
+   uv pip install --python "$RETENTION_QWEN_PREFIX/bin/python" "$VLLM_WHEEL_URL" \
+     --torch-backend cu128 \
+     --index-url https://repo.huaweicloud.com/repository/pypi/simple
    uv pip install --python "$RETENTION_QWEN_PREFIX/bin/python" "$RPENT_DIR"
    uv pip check --python "$RETENTION_QWEN_PREFIX/bin/python"
    hf download Qwen/Qwen3-VL-4B-Instruct --revision ebb281ec70b05090aa6165b016eac8ec08e71b17
@@ -298,10 +315,13 @@ num_workers、FSDP、示范比例、固定任务目录和训练适配代码。�
    bash "$CLUSTER/run_local.sh" evaluate pilot1-agent qwen35_4b
    bash "$CLUSTER/run_local.sh" cli pilot1-agent summarize
 
-这里按 vLLM 官方 release 资产选择 CUDA12.8 wheel 并保存准确 URL；若当前 release 没有该构建，
-选择官方提供 cu128 且支持两种 Qwen 的版本，把 VLLM_RELEASE 设成其 v 开头的 tag 后重试。
-检查 glibc、驱动和 wheel 的实际要求，不能只升级 Torch 来修复不匹配的 vLLM 二进制。
-正式实验沿用 pilot 验证过的 URL 和环境，不反复安装 latest。
+这里从 vLLM 官方 release 资产选择 CUDA 12.8 wheel 并保存准确 URL。首次 pilot 可用
+``VLLM_RELEASE=latest`` 查找候选版本；保存的 wheel URL 中包含所选 release tag。本机 smoke test
+通过后，MTP 复用同一 URL 和安装；之后若重建环境，使用已保存的 URL，不要再次解析 ``latest``。
+若某个 release
+没有 cu128 资产或未通过任一 Qwen smoke test，改选同时支持两种模型的官方 cu128 release。
+检查 glibc、驱动和 wheel 要求，不能只升级 Torch 来修复不兼容的 vLLM 二进制。不要并发向共享
+Qwen 环境执行多个 uv 安装进程。
 
 evaluate 入口在同一作业内启动当前 Qwen 服务、等待模型列表就绪、运行 worker 并清理自己启动的进程组。
 默认单卡 GPU0 共用，Qwen 显存比例0.4、并发1、上下文32768；必须实测峰值和真实图像/工具回合。

@@ -298,6 +298,26 @@ Create an experiment with both planners, or add their modes to the original pilo
 JSON and use section 6's refresh-plan to preserve training while rerunning evaluation.
 Switching planners does not require changing training tasks.
 
+Install vLLM once into ``RETENTION_QWEN_PREFIX`` under the shared
+``Common_wl/miniconda3/envs/`` tree. The local and MTP launchers activate this same
+absolute Conda prefix; do not create or reinstall a second Qwen environment on MTP.
+This setup pins the official CUDA 12.8 vLLM wheel because both launch paths configure
+the shared CUDA 12.8 runtime. Do not substitute the default nightly/``auto`` command:
+the nightly channel's default CUDA variant can differ from this environment, and
+``auto`` can select a PyTorch backend based on the current host's driver.
+``load_settings`` places uv downloads in ``$RETENTION_HOME/cache/uv``; keep this cache
+and retry the same install command after an interruption instead of clearing it.
+The Huawei index below serves ordinary PyPI dependencies; the vLLM release wheel and
+CUDA-specific PyTorch packages still come from their selected upstreams. Remove
+``--index-url`` if that mirror is unavailable.
+
+The Qwen service is a single-GPU planner, not a multi-GPU vLLM job. Local evaluation
+shares GPU 0 between the planner and worker. In the documented eight-GPU MTP
+evaluation, seven workers use GPUs 0–6 and Qwen uses GPU 7. Multi-GPU policy training
+is handled by the OpenPI/JAX environment, not by this Qwen environment. Install and
+validate locally first, then reuse the same shared Qwen prefix on MTP; initialize a
+separate MTP experiment config as described in section 8.
+
 .. code-block:: bash
 
    bash "$CLUSTER/run_local.sh" init pilot1 pilot1-agent --with-planners
@@ -319,7 +339,9 @@ Switching planners does not require changing training tasks.
    )"
    test -n "$VLLM_WHEEL_URL"
    printf '%s\n' "$VLLM_WHEEL_URL" > "$RETENTION_HOME/env/vllm-wheel-url.txt"
-   uv pip install --python "$RETENTION_QWEN_PREFIX/bin/python" "$VLLM_WHEEL_URL" --torch-backend cu128
+   uv pip install --python "$RETENTION_QWEN_PREFIX/bin/python" "$VLLM_WHEEL_URL" \
+     --torch-backend cu128 \
+     --index-url https://repo.huaweicloud.com/repository/pypi/simple
    uv pip install --python "$RETENTION_QWEN_PREFIX/bin/python" "$RPENT_DIR"
    uv pip check --python "$RETENTION_QWEN_PREFIX/bin/python"
    hf download Qwen/Qwen3-VL-4B-Instruct --revision ebb281ec70b05090aa6165b016eac8ec08e71b17
@@ -330,12 +352,15 @@ Switching planners does not require changing training tasks.
    bash "$CLUSTER/run_local.sh" evaluate pilot1-agent qwen35_4b
    bash "$CLUSTER/run_local.sh" cli pilot1-agent summarize
 
-The installer selects an official CUDA12.8 wheel asset and records its exact URL.
-If the selected release lacks one, choose an official cu128 release supporting both
-Qwen models and set VLLM_RELEASE to its v-prefixed tag. Check glibc, driver and wheel
+The installer selects an official CUDA 12.8 wheel asset and records its exact URL.
+For the first pilot, ``VLLM_RELEASE=latest`` locates a candidate. The saved wheel URL
+embeds the selected release tag; after local smoke tests pass, reuse that URL and
+same installation for MTP. If rebuilding the environment later, use the saved URL
+instead of resolving ``latest`` again.
+If a release has no cu128 asset or fails either Qwen smoke test, choose another
+official cu128 release supporting both models. Check glibc, driver and wheel
 requirements; upgrading Torch alone does not repair an incompatible vLLM binary.
-Keep the pilot-validated wheel URL and environment for formal runs rather than
-repeatedly installing latest.
+Do not run concurrent uv installs into the shared Qwen environment.
 
 evaluate starts the selected Qwen service in the same job, waits for its advertised
 model, runs workers and cleans up owned process groups. One local GPU0 is shared;
